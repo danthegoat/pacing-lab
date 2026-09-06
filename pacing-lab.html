@@ -1214,9 +1214,24 @@ html { scroll-behavior:smooth; }
 #pl-pacing .pacing-muted { color:var(--muted); font-size:13px; }
 #pl-pacing .pacing-dim { color:var(--muted); }
 #pl-pacing .pacing-empty { padding:14px; border:1px dashed var(--border); border-radius:10px; color:var(--muted); font-size:13px; }
+#pl-pacing details.pacing-preset-editor { margin:4px 0 12px; border:1px solid var(--border); border-radius:10px; background:var(--tile); max-width:100%; }
+#pl-pacing details.pacing-preset-editor summary { cursor:pointer; font-weight:600; font-size:14px; padding:9px 12px; }
+#pl-pacing details.pacing-preset-editor summary:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; border-radius:10px; }
+#pl-pacing .pacing-preset-wrap { overflow-x:auto; padding:0 12px; }
+#pl-pacing table.pacing-preset-table { width:100%; }
+#pl-pacing table.pacing-preset-table th[scope=row] { font-weight:500; color:var(--ink); white-space:normal; }
+@media (max-width:600px) { #pl-pacing table.pacing-preset-table th, #pl-pacing table.pacing-preset-table td { padding:4px 5px; } #pl-pacing table.pacing-preset-table input[type=number] { width:62px; } }
+#pl-pacing table.pacing-preset-table th.pacing-col-active { color:var(--accent); }
+#pl-pacing table.pacing-preset-table .pacing-col-active { background:color-mix(in srgb, var(--accent) 10%, transparent); }
+#pl-pacing table.pacing-preset-table input[type=number] { width:74px; padding:3px 6px; text-align:right; font-variant-numeric:tabular-nums; }
+#pl-pacing .pacing-col-tag { font-size:10px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin-left:4px; }
+#pl-pacing .pacing-preset-foot { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:flex-end; padding:10px 12px 4px; }
+#pl-pacing .pacing-preset-foot label { display:flex; flex-direction:column; gap:3px; font-size:12px; }
+#pl-pacing .pacing-preset-foot input[type=number] { width:120px; text-align:right; font-variant-numeric:tabular-nums; }
+#pl-pacing .pacing-preset-note { font-size:12px; color:var(--muted); margin:0; padding:6px 12px 12px; max-width:80ch; }
 </style>
 <h2>Pacing</h2>
-<p>Pick a preset or set watts per segment. The model rides every 50 m bin of the course at the target power, solves speed from rolling resistance, grade, and air density at altitude, caps descents, and adds stop time at aid stations. Splits, aid ETAs, and cutoff margins update when a value is committed (Enter or leaving the field).</p>
+<p>Pick a preset or set watts per segment. The model rides every 50 m bin of the course at the target power, solves speed from rolling resistance, grade, and air density at altitude, caps descents, and adds stop time at aid stations. Splits, aid ETAs, and cutoff margins update when a value is committed (Enter or leaving the field). The watts behind each preset are editable in the table under the preset buttons and save with the plan.</p>
 <div class="pacing-caption" id="pacing-caption" aria-live="polite"></div>
 
 <div class="pacing-row pacing-presets" role="group" aria-label="Pacing presets">
@@ -1226,6 +1241,20 @@ html { scroll-behavior:smooth; }
   <button type="button" id="pacing-preset-race" data-preset="race" aria-describedby="pacing-preset-label">Race</button>
   <span class="pacing-pill" id="pacing-custom-pill" hidden>Custom: edited per segment</span>
 </div>
+
+<details class="pacing-preset-editor" id="pacing-preset-editor">
+  <summary>Preset targets (W)</summary>
+  <div class="pacing-preset-wrap"><table class="pacing-preset-table" id="pacing-preset-table" aria-label="Preset target watts by segment kind">
+    <thead><tr><th scope="col">Segment kind</th><th scope="col" data-col="conservative">Conservative<span class="pacing-col-tag" data-col="conservative" hidden>active</span></th><th scope="col" data-col="primary">Primary<span class="pacing-col-tag" data-col="primary" hidden>active</span></th><th scope="col" data-col="race">Race<span class="pacing-col-tag" data-col="race" hidden>active</span></th></tr></thead>
+    <tbody id="pacing-preset-body"></tbody>
+  </table></div>
+  <div class="pacing-preset-foot">
+    <label>Hard climb threshold (%)<input type="number" id="pacing-hard-grade" step="0.5" min="0" max="30" aria-describedby="pacing-preset-note"></label>
+    <label>Default punch (W)<input type="number" id="pacing-punch-default" step="5" min="0" max="800" aria-describedby="pacing-preset-note"></label>
+    <button type="button" id="pacing-presets-reset" title="Restore the built-in preset watts, threshold and default punch">Reset presets</button>
+  </div>
+  <p class="pacing-preset-note" id="pacing-preset-note">Editing the highlighted column refills the segments of that kind that still carry the old value; a segment you set by hand keeps its number. Editing another column only stores the value for the next time you pick that preset. A climb steeper than the threshold reads the Hard climb row. The default punch applies to bins over 10% in segments that still carry the old default. All of this is saved with the plan.</p>
+</details>
 
 <div class="pacing-tiles" id="pacing-tiles" role="group" aria-label="Prediction totals"></div>
 
@@ -1294,25 +1323,50 @@ html { scroll-behavior:smooth; }
   const PHYS_DEF = { mass_kg:98.5, cda:0.40, drivetrain:0.975, descent_cap_ms:12, stop_s_default:75, ftp:285, ftp_alt:300 };
   const num = (v, d) => (v != null && isFinite(+v)) ? +v : d;
   const physDefault = k => num(D[k], PHYS_DEF[k]);
+  // v1.2: the watts behind each preset, the default punch and the hard-climb threshold live in pacing state (saved with the
+  // plan). PRESETS / NEUTRAL_W / PUNCH_W / HARD above only seed them and back the Reset button.
+  const PRESET_NAMES = ['conservative', 'primary', 'race'], KIND_KEYS = ['neutral', 'flat', 'rolling', 'climb', 'hard_climb', 'desc'];
+  const KIND_LABEL = { neutral:'Neutral', flat:'Flat', rolling:'Rolling', climb:'Climb', hard_climb:'Hard climb', desc:'Descent' };
+  const isPresetName = n => PRESET_NAMES.includes(n);
+  const cap1 = n => String(n)[0].toUpperCase() + String(n).slice(1);
+  function defaultPresets() {
+    const out = {};
+    PRESET_NAMES.forEach(n => { const src = PRESETS[n] || PRESETS.primary || {}; const flat = num(src.flat, 188);
+      out[n] = { neutral: num(src.neutral, NEUTRAL_W), flat, rolling: num(src.rolling, flat), climb: num(src.climb, 208), hard_climb: num(src.hard_climb, 215), desc: num(src.desc, 130) }; });
+    return out;
+  }
+  const presetsOf = pac => (pac && pac.presets && typeof pac.presets === 'object' && !Array.isArray(pac.presets)) ? pac.presets : defaultPresets();
+  function presetValue(pac, name, key) {
+    const n = isPresetName(name) ? name : 'primary'; const row = presetsOf(pac)[n] || {}; const v = row[key];
+    if (v != null && isFinite(+v)) return +v;
+    return (key === 'rolling' && row.flat != null && isFinite(+row.flat)) ? +row.flat : defaultPresets()[n][key];
+  }
+  const punchDefault = pac => num(pac && pac.punch_w, PUNCH_W);
+  const hardGradeOf = pac => num(pac && pac.hard_climb_grade, HARD);
+  // The preset whose values fill segments: the active one, or the base preset behind per-segment custom edits.
+  const activePresetName = pac => { const n = pac ? (pac.preset === 'custom' ? pac.preset_base : pac.preset) : null; return isPresetName(n) ? n : 'primary'; };
+  // True when the active preset's row differs from the built-in numbers; the caption says so, since the name alone implies stock watts.
+  const presetEdited = pac => { const n = activePresetName(pac), d = defaultPresets()[n]; return KIND_KEYS.some(k => presetValue(pac, n, k) !== d[k]); };
+  // Which preset row a segment reads; climbs split on the hard-climb threshold.
+  function kindKeyFor(seg, thr) {
+    if (seg.kind === 'neutral') return 'neutral';
+    if (seg.kind === 'climb') return num(seg.avg_grade, 0) > thr ? 'hard_climb' : 'climb';
+    if (seg.kind === 'descent') return 'desc';
+    return seg.kind === 'rolling' ? 'rolling' : 'flat';
+  }
   const poiKey = p => `${p.name}@${Number(p.mile).toFixed(1)}`;
   const aidPois = course => ((course && course.pois) || []).filter(p => p.type === 'aid').slice().sort((a,b) => a.d - b.d);
   const parseClock = t => { if (!t) return null; const m = String(t).match(/^(\d{1,2}):(\d{2})/); return m ? (+m[1])*3600 + (+m[2])*60 : null; };
   const startSeconds = pac => { const s = parseClock(pac && pac.start_time); return s != null ? s : F.startSeconds(); };
 
   // ---------- pacing state construction ----------
-  function baseForSegment(seg, presetName, pac) {
-    const p = PRESETS[presetName] || PRESETS.primary;
-    if (seg.kind === 'neutral') return NEUTRAL_W;
-    if (seg.kind === 'climb') return (seg.avg_grade > HARD) ? p.hard_climb : p.climb;
-    if (seg.kind === 'descent') return (pac && pac.desc_w != null) ? pac.desc_w : p.desc;
-    return (pac && pac.flat_w != null) ? pac.flat_w : p.flat;
-  }
+  function baseForSegment(seg, presetName, pac) { return presetValue(pac, presetName, kindKeyFor(seg, hardGradeOf(pac))); }
   function fillPower(segs, presetName, prev, pac, keepExisting) {
     const out = {};
     (segs || []).forEach(seg => {
       const old = prev && prev[seg.id];
       if (keepExisting && old) { out[seg.id] = old; return; }
-      out[seg.id] = { base_w: baseForSegment(seg, presetName, keepExisting ? pac : null), punch_w: old && old.punch_w != null ? old.punch_w : PUNCH_W };
+      out[seg.id] = { base_w: baseForSegment(seg, presetName, pac), punch_w: old && old.punch_w != null ? old.punch_w : punchDefault(pac) };
     });
     return out;
   }
@@ -1342,9 +1396,12 @@ html { scroll-behavior:smooth; }
     return out;
   }
   function initialPacing(state) {
+    // The course package may name its default preset (RPI: race, the pace the plan is written at); otherwise primary.
     const course = state.course || PL.course; const preset = (course && course.default_preset && PRESETS[course.default_preset]) ? course.default_preset : 'primary'; const P = PRESETS[preset];
+    const presets = defaultPresets();
     const pac = { mass_kg:physDefault('mass_kg'), cda:physDefault('cda'), drivetrain:physDefault('drivetrain'), descent_cap_ms:physDefault('descent_cap_ms'), stop_s_default:physDefault('stop_s_default'), ftp:physDefault('ftp'), ftp_alt:physDefault('ftp_alt'),
       start_time: (course && course.start_time) || '07:30', preset, preset_base: preset, flat_w: P.flat, desc_w: P.desc,
+      presets, punch_w: PUNCH_W, hard_climb_grade: HARD,
       crr_by_surface: crrFor(course), power_by_segment: {}, stops: {} };
     pac.power_by_segment = fillPower(state.segments, preset, null, pac, false);
     pac.stops = defaultStops(course, null, pac.stop_s_default, aidActionsFor(state));
@@ -1356,9 +1413,17 @@ html { scroll-behavior:smooth; }
     Object.keys(PHYS_DEF).forEach(k => { if (!isFinite(+next[k]) || next[k] == null) { next[k] = physDefault(k); changed = true; } });
     if (!next.crr_by_surface || typeof next.crr_by_surface !== 'object') { next.crr_by_surface = Object.assign({}, CRR_DEF); changed = true; }
     else { Object.keys(CRR_DEF).forEach(s => { if (!isFinite(+next.crr_by_surface[s]) || next.crr_by_surface[s] == null) { next.crr_by_surface = Object.assign({}, next.crr_by_surface, { [s]: CRR_DEF[s] }); changed = true; } }); }
-    if (!PRESETS[next.preset] && next.preset !== 'custom') { next.preset = 'primary'; changed = true; }
-    if (!PRESETS[next.preset_base]) { next.preset_base = PRESETS[next.preset] ? next.preset : 'primary'; changed = true; }
-    const PB = PRESETS[next.preset_base];
+    // Preset watts, default punch and hard-climb threshold arrived in v1.2; a plan saved before that gets the defaults.
+    const defP = defaultPresets(); const srcP = (next.presets && typeof next.presets === 'object' && !Array.isArray(next.presets)) ? next.presets : null; let pr = srcP, prChanged = !srcP;
+    PRESET_NAMES.forEach(n => { const row = (srcP && srcP[n] && typeof srcP[n] === 'object') ? srcP[n] : null; let fixed = null;
+      KIND_KEYS.forEach(k => { if (!row || row[k] == null || !isFinite(+row[k])) { fixed = fixed || Object.assign({}, row || {}); fixed[k] = (k === 'rolling' && row && row.flat != null && isFinite(+row.flat)) ? +row.flat : defP[n][k]; } });
+      if (fixed) { pr = Object.assign({}, pr || {}, { [n]: fixed }); prChanged = true; } });
+    if (prChanged) { next.presets = pr || defP; changed = true; }
+    if (next.punch_w == null || !isFinite(+next.punch_w)) { next.punch_w = PUNCH_W; changed = true; }
+    if (next.hard_climb_grade == null || !isFinite(+next.hard_climb_grade)) { next.hard_climb_grade = HARD; changed = true; }
+    if (!isPresetName(next.preset) && next.preset !== 'custom') { next.preset = 'primary'; changed = true; }
+    if (!isPresetName(next.preset_base)) { next.preset_base = isPresetName(next.preset) ? next.preset : 'primary'; changed = true; }
+    const PB = next.presets[next.preset_base];
     if (!isFinite(+next.flat_w) || next.flat_w == null) { next.flat_w = PB.flat; changed = true; }
     if (!isFinite(+next.desc_w) || next.desc_w == null) { next.desc_w = PB.desc; changed = true; }
     if (parseClock(next.start_time) == null) { next.start_time = (course && course.start_time) || '07:30'; changed = true; }
@@ -1394,8 +1459,8 @@ html { scroll-behavior:smooth; }
     const stops = pac.stops || {};
     let pendingStop = 0;
     segs.forEach(seg => {
-      const pw = (pac.power_by_segment && pac.power_by_segment[seg.id]) || { base_w: baseForSegment(seg, pac.preset_base || 'primary', pac), punch_w: PUNCH_W };
-      const base = num(pw.base_w, 0), punch = num(pw.punch_w, PUNCH_W);
+      const pw = (pac.power_by_segment && pac.power_by_segment[seg.id]) || { base_w: baseForSegment(seg, activePresetName(pac), pac), punch_w: punchDefault(pac) };
+      const base = num(pw.base_w, 0), punch = num(pw.punch_w, punchDefault(pac));
       let flat = num(pac.flat_w, PRESETS.primary.flat), desc = num(pac.desc_w, PRESETS.primary.desc);
       if (seg.kind === 'neutral') { flat = base; desc = Math.min(desc, base); }
       const crr = (pac.crr_by_surface && isFinite(+pac.crr_by_surface[seg.surface]) && pac.crr_by_surface[seg.surface] != null) ? +pac.crr_by_surface[seg.surface] : CRR_DEF.packed;
@@ -1495,8 +1560,65 @@ html { scroll-behavior:smooth; }
     render(S.get());
   }
   function applyPreset(name) {
-    writePacing(p => { const P = PRESETS[name]; if (!P) return; p.preset = name; p.preset_base = name; p.flat_w = P.flat; p.desc_w = P.desc;
+    writePacing(p => { if (!isPresetName(name)) return; const P = presetsOf(p)[name] || defaultPresets()[name]; p.preset = name; p.preset_base = name; p.flat_w = +P.flat; p.desc_w = +P.desc;
       p.power_by_segment = fillPower(S.get().segments, name, p.power_by_segment, p, false); });
+  }
+
+  // ---------- preset editor (v1.2) ----------
+  // One rule for every preset edit: a segment follows the preset only while its base_w still equals the value the preset gave
+  // it. A segment the user set by hand (base_w differs) keeps its number. pick(seg, pw) returns the new base or null.
+  function refillBases(p, pick) {
+    const pbs = p.power_by_segment || {}; let out = null;
+    (S.get().segments || []).forEach(seg => { const pw = pbs[seg.id]; if (!pw) return; const nb = pick(seg, pw); if (nb == null || nb === pw.base_w) return;
+      if (!out) out = Object.assign({}, pbs); out[seg.id] = Object.assign({}, pw, { base_w: nb }); });
+    if (out) p.power_by_segment = out;
+  }
+  function setPresetValue(p, name, key, nv) {
+    const cur = presetsOf(p), old = presetValue(p, name, key);
+    p.presets = Object.assign({}, cur, { [name]: Object.assign({}, cur[name] || {}, { [key]: nv }) });
+    if (old === nv || activePresetName(p) !== name) return;
+    const thr = hardGradeOf(p);
+    refillBases(p, (seg, pw) => (kindKeyFor(seg, thr) === key && pw.base_w === old) ? nv : null);
+    // The bin-level flat and descent watts track the preset's flat and desc rows unless the user set them by hand.
+    if (key === 'flat' && p.flat_w === old) p.flat_w = nv;
+    if (key === 'desc' && p.desc_w === old) p.desc_w = nv;
+  }
+  function setHardGrade(p, nv) {
+    const old = hardGradeOf(p); p.hard_climb_grade = nv; if (old === nv) return;
+    const P = presetsOf(p)[activePresetName(p)] || defaultPresets().primary;
+    refillBases(p, (seg, pw) => { if (seg.kind !== 'climb') return null; const k0 = kindKeyFor(seg, old), k1 = kindKeyFor(seg, nv);
+      return (k0 !== k1 && pw.base_w === +P[k0]) ? +P[k1] : null; });
+  }
+  function setPunchDefault(p, nv) {
+    const old = punchDefault(p); p.punch_w = nv; if (old === nv) return;
+    const pbs = p.power_by_segment || {}; let out = null;
+    Object.keys(pbs).forEach(id => { if (pbs[id] && pbs[id].punch_w === old) { if (!out) out = Object.assign({}, pbs); out[id] = Object.assign({}, pbs[id], { punch_w: nv }); } });
+    if (out) p.power_by_segment = out;
+  }
+  function resetPresets(p) {
+    const name = activePresetName(p), oldThr = hardGradeOf(p), defP = defaultPresets();
+    const A = presetsOf(p)[name] || defP[name], B = defP[name];
+    setPunchDefault(p, PUNCH_W);
+    p.presets = defP; p.hard_climb_grade = HARD;
+    refillBases(p, (seg, pw) => { const ov = A[kindKeyFor(seg, oldThr)]; return (ov != null && +ov === pw.base_w) ? +B[kindKeyFor(seg, HARD)] : null; });
+    if (p.flat_w === +A.flat) p.flat_w = +B.flat;
+    if (p.desc_w === +A.desc) p.desc_w = +B.desc;
+  }
+  const presetTable = $('pacing-preset-table');
+  if (presetTable) {
+    $('pacing-preset-body').innerHTML = KIND_KEYS.map(k => `<tr><th scope="row">${KIND_LABEL[k]}${k === 'hard_climb' ? ' <span id="pacing-hard-label" class="pacing-dim"></span>' : ''}</th>` +
+      PRESET_NAMES.map(n => `<td data-col="${n}"><input type="number" step="1" min="0" max="600" data-preset="${n}" data-kind="${k}" aria-label="${cap1(n)} preset, ${KIND_LABEL[k].toLowerCase()} target (W)"></td>`).join('') + '</tr>').join('');
+  }
+  function renderPresetEditor(pac) {
+    if (!pac || !presetTable) return;
+    const act = activePresetName(pac), thr = hardGradeOf(pac);
+    presetTable.querySelectorAll('input[data-preset]').forEach(el => { if (document.activeElement !== el) el.value = String(Math.round(presetValue(pac, el.dataset.preset, el.dataset.kind))); });
+    presetTable.querySelectorAll('th[data-col], td[data-col]').forEach(c => c.classList.toggle('pacing-col-active', c.dataset.col === act));
+    presetTable.querySelectorAll('.pacing-col-tag').forEach(t => { t.hidden = t.dataset.col !== act; });
+    const lab = $('pacing-hard-label'); if (lab) lab.textContent = `(over ${(thr * 100).toFixed(1)}%)`;
+    const hg = $('pacing-hard-grade'), pd = $('pacing-punch-default');
+    if (hg && document.activeElement !== hg) hg.value = (thr * 100).toFixed(1);
+    if (pd && document.activeElement !== pd) pd.value = String(Math.round(punchDefault(pac)));
   }
 
   // ---------- rendering ----------
@@ -1534,7 +1656,7 @@ html { scroll-behavior:smooth; }
     const lo = pred.total_elapsed_s * 0.985, hi = pred.total_elapsed_s * 1.03;
     let tight = null; (pred.aid_eta || []).forEach(a => { if (a.margin_s != null && (tight == null || a.margin_s < tight.margin_s)) tight = a; });
     const cut = tight ? ` Tightest cutoff: ${esc(tight.name)} at mile ${tight.mile.toFixed(1)}, ${tight.margin_s >= 0 ? Math.round(tight.margin_s / 60) + ' min in hand' : Math.round(-tight.margin_s / 60) + ' min late'}.` : '';
-    const label = state.pacing.preset === 'custom' ? 'Custom pacing' : esc(state.pacing.preset[0].toUpperCase() + state.pacing.preset.slice(1)) + ' preset';
+    const label = state.pacing.preset === 'custom' ? 'Custom pacing' : esc(state.pacing.preset[0].toUpperCase() + state.pacing.preset.slice(1)) + ' preset' + (presetEdited(state.pacing) ? ' (edited watts)' : '');
     el.innerHTML = `${label}: model point <strong>${F.hms(pred.total_elapsed_s)}</strong> elapsed, planning band <strong>${F.hm(lo)} to ${F.hm(hi)}</strong> (model minus 1.5% to plus 3%, the spread seen at Bigfoot), NP <strong>${Math.round(pred.np_w)} W</strong>, finish at <strong>${F.clock(pred.start_seconds + pred.total_elapsed_s)}</strong>.${cut}`;
   }
 
@@ -1556,7 +1678,7 @@ html { scroll-behavior:smooth; }
         <td><span class="pacing-kind">${esc(seg.kind)}</span></td><td>${esc(seg.surface)}</td>
         <td>${((seg.end_m - seg.start_m) / MI).toFixed(1)}</td><td>${F.ft(seg.gain_m || 0)}</td>
         <td><input type="number" aria-label="Base W for ${esc(seg.name)}" data-focus="base-${esc(seg.id)}" data-seg="${esc(seg.id)}" data-field="base_w" step="1" min="0" max="600" value="${numIn(pw.base_w, 0)}"></td>
-        <td>${hasPunch ? `<input type="number" aria-label="Punch W for ${esc(seg.name)}" data-focus="punch-${esc(seg.id)}" data-seg="${esc(seg.id)}" data-field="punch_w" step="5" min="0" max="800" value="${numIn(pw.punch_w != null ? pw.punch_w : PUNCH_W, 0)}">` : '<span class="pacing-dim" title="No bins over 10% in this segment">n/a</span>'}</td>
+        <td>${hasPunch ? `<input type="number" aria-label="Punch W for ${esc(seg.name)}" data-focus="punch-${esc(seg.id)}" data-seg="${esc(seg.id)}" data-field="punch_w" step="5" min="0" max="800" value="${numIn(pw.punch_w != null ? pw.punch_w : punchDefault(pac), 0)}">` : '<span class="pacing-dim" title="No bins over 10% in this segment">n/a</span>'}</td>
         <td>${m ? F.hms(m.moving_s) : ''}</td><td>${m ? Math.round(m.avg_w) : ''}</td>
         <td>${m ? F.hms(m.end_s) : ''}</td><td>${m && pred ? F.clock(pred.start_seconds + m.end_s) : ''}</td>
         <td>${aid ? esc(aid.name) : '<span class="pacing-dim">n/a</span>'}</td>
@@ -1635,7 +1757,7 @@ html { scroll-behavior:smooth; }
       const seg = segs.find(s => dm >= s.start_m && dm < s.end_m) || segs[segs.length - 1];
       hoverLine.attr('x1', px).attr('x2', px).attr('opacity', 1);
       if (seg) { const pw = pbs[seg.id] || {}, m = meta[seg.id];
-        tip.hidden = false; tip.innerHTML = `<strong>${esc(seg.name)}</strong><br>mile ${mi.toFixed(1)}, target ${Math.round(num(pw.base_w, 0))} W${hasPunchById[seg.id] ? ` (punch ${Math.round(num(pw.punch_w, PUNCH_W))} W)` : ''}<br>${m ? `split ${F.hms(m.moving_s)}, avg ${Math.round(m.avg_w)} W` : ''}`;
+        tip.hidden = false; tip.innerHTML = `<strong>${esc(seg.name)}</strong><br>mile ${mi.toFixed(1)}, target ${Math.round(num(pw.base_w, 0))} W${hasPunchById[seg.id] ? ` (punch ${Math.round(num(pw.punch_w, punchDefault(pac)))} W)` : ''}<br>${m ? `split ${F.hms(m.moving_s)}, avg ${Math.round(m.avg_w)} W` : ''}`;
         const rect = wrap.getBoundingClientRect(); const left = ev.clientX - rect.left; const tw = tip.offsetWidth;
         tip.style.left = Math.min(rect.width - tw - 4, Math.max(0, left + 12)) + 'px'; tip.style.top = (ev.clientY - rect.top - 8) + 'px';
         markRow(seg.id); }
@@ -1653,7 +1775,7 @@ html { scroll-behavior:smooth; }
   function render(state) {
     const focusKey = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.focus : null;
     const pred = state.predictions;
-    renderParams(state.pacing); renderTiles(pred, state.pacing || {}); renderCaption(state, pred);
+    renderParams(state.pacing); renderPresetEditor(state.pacing); renderTiles(pred, state.pacing || {}); renderCaption(state, pred);
     renderSegTable(state, pred); renderClimbs(state, pred); renderAid(state, pred); renderChart(state, pred);
     if (focusKey) { const el = document.querySelector(`#pl-pacing [data-focus="${focusKey.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`); if (el) el.focus(); }
     if (firstRender) { firstRender = false; try { PL.dispatchReady('pacing'); } catch (e) {} }
@@ -1683,11 +1805,30 @@ html { scroll-behavior:smooth; }
       const f = S.get().fueling; if (f && f.aid_actions) { const cur = f.aid_actions[k] || { stop_s: 0, take: [], refill: [], notes: '' }; if (cur.stop_s !== nv) { lastFuelStops[k] = nv; S.set({ fueling: Object.assign({}, f, { aid_actions: Object.assign({}, f.aid_actions, { [k]: Object.assign({}, cur, { stop_s: nv }) }) }) }); } }
       return; }
     if (el.dataset.seg && el.dataset.field) {
-      writePacing(p => { const cur = p.power_by_segment[el.dataset.seg] || { base_w: 0, punch_w: PUNCH_W };
+      writePacing(p => { const cur = p.power_by_segment[el.dataset.seg] || { base_w: 0, punch_w: punchDefault(p) };
         p.power_by_segment = Object.assign({}, p.power_by_segment, { [el.dataset.seg]: Object.assign({}, cur, { [el.dataset.field]: Math.max(0, v) }) }); p.preset = 'custom'; });
     }
   };
   $('pacing-segtable').addEventListener('change', onTableChange);
+  if (presetTable) {
+    presetTable.addEventListener('change', ev => {
+      const el = ev.target; if (!(el instanceof HTMLInputElement) || !el.dataset.preset) return;
+      const name = el.dataset.preset, key = el.dataset.kind, v = parseFloat(el.value);
+      if (!isFinite(v) || v < 0 || !isPresetName(name) || !KIND_KEYS.includes(key)) { el.value = String(Math.round(presetValue(S.get().pacing, name, key))); return; }
+      const nv = Math.round(Math.min(600, v)); writePacing(p => setPresetValue(p, name, key, nv)); el.value = String(nv);
+    });
+    $('pacing-hard-grade').addEventListener('change', ev => {
+      const el = ev.target, v = parseFloat(el.value);
+      if (!isFinite(v) || v < 0) { el.value = (hardGradeOf(S.get().pacing) * 100).toFixed(1); return; }
+      const nv = Math.round(Math.min(30, v) * 10) / 1000; writePacing(p => setHardGrade(p, nv)); el.value = (nv * 100).toFixed(1);
+    });
+    $('pacing-punch-default').addEventListener('change', ev => {
+      const el = ev.target, v = parseFloat(el.value);
+      if (!isFinite(v) || v < 0) { el.value = String(Math.round(punchDefault(S.get().pacing))); return; }
+      const nv = Math.round(Math.min(800, v)); writePacing(p => setPunchDefault(p, nv)); el.value = String(nv);
+    });
+    $('pacing-presets-reset').addEventListener('click', () => writePacing(resetPresets));
+  }
   $('pacing-aidtable').addEventListener('change', onTableChange);
   const toggleSelect = id => { const st = S.get(); const cur = st.ui || {}; S.set({ ui: Object.assign({}, cur, { selectedSegmentId: cur.selectedSegmentId === id ? null : id }) }); };
   $('pacing-segbody').addEventListener('click', ev => { const tr = ev.target.closest('tr[data-seg]'); if (!tr || ev.target.tagName === 'INPUT') return; toggleSelect(tr.dataset.seg); });
