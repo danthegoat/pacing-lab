@@ -87,8 +87,14 @@ html { scroll-behavior:smooth; }
 #pl-course .course-lead { margin:0 0 14px; }
 #pl-course .course-caption { margin:6px 0 14px; font-size:14px; }
 #pl-course .course-maprow { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start; }
-#pl-course .course-mapwrap { position:relative; border:1px solid var(--border); border-radius:10px; background:var(--tile); overflow:hidden; flex:0 1 auto; max-width:100%; }
+#pl-course .course-mapcol { flex:0 1 auto; max-width:100%; min-width:0; }
+#pl-course .course-mapcol.course-live { flex:1 1 560px; }
+#pl-course .course-mapwrap { position:relative; border:1px solid var(--border); border-radius:10px; background:var(--tile); overflow:hidden; max-width:100%; }
 #pl-course .course-map { display:block; max-width:100%; height:auto; }
+#pl-course .course-livemap { width:100%; height:520px; background:var(--tile); }
+#pl-course .course-map[hidden], #pl-course .course-livemap[hidden] { display:none; }
+#pl-course .course-mapnote { margin:6px 2px 0; font-size:12px; color:var(--muted); min-height:16px; }
+@media (max-width:700px) { #pl-course .course-livemap { height:360px; } }
 #pl-course .course-poiside { flex:1 1 280px; min-width:0; }
 #pl-course .course-poiside h3 { margin:0 0 6px; font-size:14px; color:var(--ink-2); font-weight:600; }
 #pl-course .course-poiside .tablewrap { max-height:520px; overflow:auto; border:1px solid var(--border); border-radius:10px; }
@@ -135,13 +141,45 @@ html { scroll-behavior:smooth; }
 #pl-course table.course-table .course-actions { white-space:nowrap; }
 #pl-course table.course-table .course-actions button + button { margin-left:4px; }
 @media (max-width:700px) { #pl-course table.course-table input[type=text] { width:140px; } }
+/* Leaflet 1.9.4 core CSS, scoped to this section. Rules that load images (default marker icons, layers control), popups, and the IE-only VML rules are dropped: no image may load from another host here. */
+#pl-course .leaflet-image-layer,#pl-course .leaflet-layer,#pl-course .leaflet-marker-icon,#pl-course .leaflet-marker-shadow,#pl-course .leaflet-pane,#pl-course .leaflet-pane>canvas,#pl-course .leaflet-pane>svg,#pl-course .leaflet-tile,#pl-course .leaflet-tile-container,#pl-course .leaflet-zoom-box{position:absolute;left:0;top:0}#pl-course .leaflet-container{overflow:hidden}#pl-course .leaflet-marker-icon,#pl-course .leaflet-marker-shadow,#pl-course .leaflet-tile{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}#pl-course .leaflet-tile::selection{background:0 0}#pl-course .leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}#pl-course .leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}#pl-course .leaflet-marker-icon,#pl-course .leaflet-marker-shadow{display:block}#pl-course .leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}#pl-course .leaflet-container .leaflet-marker-pane img,#pl-course .leaflet-container .leaflet-shadow-pane img,#pl-course .leaflet-container .leaflet-tile,#pl-course .leaflet-container .leaflet-tile-pane img,#pl-course .leaflet-container img.leaflet-image-layer{max-width:none!important;max-height:none!important;width:auto;padding:0}#pl-course .leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}#pl-course .leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}#pl-course .leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}#pl-course .leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}#pl-course .leaflet-container{-webkit-tap-highlight-color:transparent}#pl-course .leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}#pl-course .leaflet-tile{filter:inherit;visibility:hidden}#pl-course .leaflet-tile-loaded{visibility:inherit}#pl-course .leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}#pl-course .leaflet-overlay-pane svg{-moz-user-select:none}#pl-course .leaflet-pane{z-index:400}#pl-course .leaflet-tile-pane{z-index:200}#pl-course .leaflet-overlay-pane{z-index:400}#pl-course .leaflet-shadow-pane{z-index:500}#pl-course .leaflet-marker-pane{z-index:600}#pl-course .leaflet-tooltip-pane{z-index:650}#pl-course .leaflet-map-pane canvas{z-index:100}#pl-course .leaflet-map-pane svg{z-index:200}#pl-course .leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}#pl-course .leaflet-bottom,#pl-course .leaflet-top{position:absolute;z-index:1000;pointer-events:none}#pl-course .leaflet-top{top:0}#pl-course .leaflet-right{right:0}#pl-course .leaflet-bottom{bottom:0}#pl-course .leaflet-left{left:0}#pl-course .leaflet-control{float:left;clear:both}#pl-course .leaflet-right .leaflet-control{float:right}#pl-course .leaflet-top .leaflet-control{margin-top:10px}#pl-course .leaflet-bottom .leaflet-control{margin-bottom:10px}#pl-course .leaflet-left .leaflet-control{margin-left:10px}#pl-course .leaflet-right .leaflet-control{margin-right:10px}#pl-course .leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}#pl-course svg.leaflet-zoom-animated{will-change:transform}#pl-course .leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}#pl-course .leaflet-pan-anim .leaflet-tile,#pl-course .leaflet-zoom-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}#pl-course .leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}#pl-course .leaflet-interactive{cursor:pointer}#pl-course .leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}#pl-course .leaflet-crosshair,#pl-course .leaflet-crosshair .leaflet-interactive{cursor:crosshair}#pl-course .leaflet-control{cursor:auto}.leaflet-dragging #pl-course .leaflet-grab,.leaflet-dragging #pl-course .leaflet-grab .leaflet-interactive,.leaflet-dragging #pl-course .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}#pl-course .leaflet-image-layer,#pl-course .leaflet-marker-icon,#pl-course .leaflet-marker-shadow,#pl-course .leaflet-pane>svg path,#pl-course .leaflet-tile-container{pointer-events:none}#pl-course .leaflet-image-layer.leaflet-interactive,#pl-course .leaflet-marker-icon.leaflet-interactive,#pl-course .leaflet-pane>svg path.leaflet-interactive,#pl-course svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}#pl-course .leaflet-container{background:#ddd;outline-offset:1px}#pl-course .leaflet-container a{color:#0078a8}#pl-course .leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}#pl-course .leaflet-container{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}#pl-course .leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}#pl-course .leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}#pl-course .leaflet-bar a{background-position:50% 50%;background-repeat:no-repeat;display:block}#pl-course .leaflet-bar a:focus,#pl-course .leaflet-bar a:hover{background-color:#f4f4f4}#pl-course .leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}#pl-course .leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}#pl-course .leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}#pl-course .leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}#pl-course .leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}#pl-course .leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}#pl-course .leaflet-control-zoom-in,#pl-course .leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}#pl-course .leaflet-touch .leaflet-control-zoom-in,#pl-course .leaflet-touch .leaflet-control-zoom-out{font-size:22px}#pl-course .leaflet-container .leaflet-control-attribution{background:#fff;background:rgba(255,255,255,.8);margin:0}#pl-course .leaflet-control-attribution,#pl-course .leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}#pl-course .leaflet-control-attribution a{text-decoration:none}#pl-course .leaflet-control-attribution a:focus,#pl-course .leaflet-control-attribution a:hover{text-decoration:underline}#pl-course .leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}#pl-course .leaflet-left .leaflet-control-scale{margin-left:5px}#pl-course .leaflet-bottom .leaflet-control-scale{margin-bottom:5px}#pl-course .leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:rgba(255,255,255,.8);text-shadow:1px 1px #fff}#pl-course .leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}#pl-course .leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}#pl-course .leaflet-touch .leaflet-bar,#pl-course .leaflet-touch .leaflet-control-attribution{box-shadow:none}#pl-course .leaflet-touch .leaflet-bar{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}#pl-course .leaflet-div-icon{background:#fff;border:1px solid #666}#pl-course .leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}#pl-course .leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}#pl-course .leaflet-tooltip-bottom:before,#pl-course .leaflet-tooltip-left:before,#pl-course .leaflet-tooltip-right:before,#pl-course .leaflet-tooltip-top:before{position:absolute;pointer-events:none;border:6px solid transparent;background:0 0;content:""}#pl-course .leaflet-tooltip-bottom{margin-top:6px}#pl-course .leaflet-tooltip-top{margin-top:-6px}#pl-course .leaflet-tooltip-bottom:before,#pl-course .leaflet-tooltip-top:before{left:50%;margin-left:-6px}#pl-course .leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}#pl-course .leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}#pl-course .leaflet-tooltip-left{margin-left:-6px}#pl-course .leaflet-tooltip-right{margin-left:6px}#pl-course .leaflet-tooltip-left:before,#pl-course .leaflet-tooltip-right:before{top:50%;margin-top:-6px}#pl-course .leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}#pl-course .leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{#pl-course .leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Live map skin: host tokens for controls, labels, and the attribution box. */
+#pl-course .leaflet-container { background:var(--tile); font-family:inherit; font-size:12px; }
+#pl-course .leaflet-container:focus-visible { outline:2px solid var(--accent); outline-offset:-2px; }
+#pl-course .leaflet-bar { box-shadow:0 1px 4px rgba(0,0,0,.22); border:1px solid var(--border); }
+#pl-course .leaflet-bar a { background:var(--tile); color:var(--ink); border-bottom-color:var(--border); }
+#pl-course .leaflet-bar a:hover, #pl-course .leaflet-bar a:focus { background:var(--surface); color:var(--ink); }
+#pl-course .leaflet-bar a.leaflet-disabled { background:var(--tile); color:var(--muted); }
+#pl-course .leaflet-container .leaflet-control-attribution { background:color-mix(in srgb, var(--tile) 86%, transparent); color:var(--ink-2); font-size:10px; line-height:1.3; padding:2px 6px; border-top-left-radius:6px; white-space:normal; max-width:72%; }
+#pl-course .leaflet-container .leaflet-control-attribution a { color:var(--accent); }
+#pl-course .leaflet-control-scale-line { background:color-mix(in srgb, var(--tile) 82%, transparent); color:var(--ink); border-color:var(--ink-2); text-shadow:none; font-size:10px; font-variant-numeric:tabular-nums; }
+#pl-course .leaflet-tooltip.course-lltip { background:var(--tile); color:var(--ink); border:1px solid var(--border); border-radius:6px; padding:3px 7px; font-size:11.5px; font-weight:600; line-height:1.3; box-shadow:0 1px 4px rgba(0,0,0,.18); font-variant-numeric:tabular-nums; }
+#pl-course .course-lltip.course-lltip-aid { color:var(--aid); }
+#pl-course .course-lltip.course-lltip-cut { color:var(--cutoff); }
+#pl-course .course-lltip.course-lltip-pass { color:var(--ink-2); font-weight:500; }
+#pl-course .course-lltip .course-lltip-sub { display:block; font-weight:500; font-size:10.5px; }
+#pl-course .course-lltip.leaflet-tooltip-top:before { border-top-color:var(--tile); }
+#pl-course .course-lltip.leaflet-tooltip-bottom:before { border-bottom-color:var(--tile); }
+#pl-course .course-lltip.leaflet-tooltip-left:before { border-left-color:var(--tile); }
+#pl-course .course-lltip.leaflet-tooltip-right:before { border-right-color:var(--tile); }
+#pl-course .course-lltick { background:var(--tile); color:var(--ink); border:1px solid var(--border); border-radius:4px; font-size:11px; font-weight:600; line-height:14px; text-align:center; box-sizing:border-box; box-shadow:0 1px 3px rgba(0,0,0,.15); font-variant-numeric:tabular-nums; }
+#pl-course .course-llmark i, #pl-course .course-llbound i { display:block; width:100%; height:100%; box-sizing:border-box; }
+#pl-course .course-llsq i { background:var(--ink); border:2px solid var(--page); }
+#pl-course .course-lldia i { background:var(--muted); border:1.5px solid var(--page); transform:rotate(45deg); }
+#pl-course .course-llbound i { background:var(--page); border:1.5px solid var(--ink); transform:rotate(45deg); }
+:root[data-theme="dark"] #pl-course .leaflet-tile-pane { filter:brightness(.82) saturate(.9); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #pl-course .leaflet-tile-pane { filter:brightness(.82) saturate(.9); } }
 </style>
 <h2>Course</h2>
 <p class="course-lead" id="course-lead">Map and grade-colored profile of the course, divided into pacing segments. Aid stations lock a boundary in place. Drag a handle on the profile to move a boundary, click the profile to add one, and edit names, kinds, and surfaces in the table below. The pacing module reads these segments.</p>
 <p class="course-caption" id="course-caption"></p>
 <div class="course-maprow">
-  <div class="course-mapwrap" id="course-mapwrap">
-    <svg class="course-map" id="course-map" role="img" aria-label="Course map with the route colored by grade"></svg>
+  <div class="course-mapcol" id="course-mapcol">
+    <div class="course-mapwrap" id="course-mapwrap">
+      <svg class="course-map" id="course-map" role="img" aria-label="Course map with the route colored by grade"></svg>
+      <div class="course-livemap" id="course-livemap" hidden aria-label="Live course map with the route colored by grade"></div>
+    </div>
+    <p class="course-mapnote" id="course-mapnote" aria-live="polite"></p>
   </div>
   <div class="course-poiside">
     <h3 id="course-poitab-title">Course points</h3>
@@ -166,6 +204,7 @@ html { scroll-behavior:smooth; }
   <thead><tr><th>#</th><th>Name</th><th>Miles</th><th>Length mi</th><th>Gain ft</th><th>Loss ft</th><th>Avg %</th><th title="Steepest 250 m stretch">Max %</th><th>Kind</th><th>Surface</th><th>Lock</th><th>Boundary and merge</th></tr></thead>
   <tbody id="course-segbody"></tbody>
 </table></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>(function(){
   const S = document.getElementById('pl-course');
   if (!S || !window.PL || !window.d3) return;
@@ -336,8 +375,9 @@ html { scroll-behavior:smooth; }
 
   // ---------- module state ----------
   let course = null, segs = [], lastHover_m = null, tempSegs = null, mapPts = null, quad = null, mapRefs = null, profRefs = null, mapKind = 'none';
+  let liveRefs = null, mapMode = 'static', tilesOk = null, probeToken = 0;
   let resizeTimer = null;
-  const el = { map:$('#course-map'), mapwrap:$('#course-mapwrap'), profile:$('#course-profile'), profilewrap:$('#course-profilewrap'), tip:$('#course-tip'), legend:$('#course-legend'),
+  const el = { map:$('#course-map'), mapwrap:$('#course-mapwrap'), mapcol:$('#course-mapcol'), livemap:$('#course-livemap'), mapnote:$('#course-mapnote'), profile:$('#course-profile'), profilewrap:$('#course-profilewrap'), tip:$('#course-tip'), legend:$('#course-legend'),
     caption:$('#course-caption'), addmile:$('#course-addmile'), addbtn:$('#course-addbtn'), maxseg:$('#course-maxseg'), rerun:$('#course-rerun'), count:$('#course-count'),
     status:$('#course-status'), segbody:$('#course-segbody'), poibody:$('#course-poitab tbody') };
   const tok = n => PL.tok(n);
@@ -418,7 +458,7 @@ html { scroll-behavior:smooth; }
   }
   function rerun() { if (!course) return; const mx = capValue(); el.maxseg.value = mx; const done = autoSegment(course, mx); writeSegs(done); status('Auto segmentation produced ' + done.length + ' segments with a cap of ' + mx + '.' + (done.length > mx ? ' Locked boundaries kept the count above the cap.' : '')); }
 
-  // ---------- map ----------
+  // ---------- static map (SVG over the packaged basemap; the fallback everywhere tiles cannot load) ----------
   function buildProjection(c) {
     const bm = c.basemap;
     if (bm && bm.width && bm.height && bm.bbox) {
@@ -441,10 +481,10 @@ html { scroll-behavior:smooth; }
   }
   function pathFor(pts, i0, i1) { let s = ''; for (let i = i0; i <= i1; i++) { const p = pts[i]; if (!p) continue; s += (s ? 'L' : 'M') + p.x.toFixed(1) + ',' + p.y.toFixed(1); } return s; }
   const MAP_H = 520;
-  function renderMap() {
+  function renderStaticMap() {
+    el.map.removeAttribute('hidden'); el.mapcol.classList.remove('course-live');
     const svg = d3.select(el.map); svg.selectAll('*:not(title)').remove();
     mapRefs = null; mapPts = null; quad = null;
-    renderPoiTable();
     if (!course) return;
     const P = buildProjection(course);
     if (!P) { svg.attr('viewBox', '0 0 600 80'); el.map.style.width = '600px'; svg.append('text').attr('x', 12).attr('y', 44).attr('fill', tok('--muted')).style('font-size', '13px').text('This course has no coordinates, so there is no map.'); return; }
@@ -593,9 +633,9 @@ html { scroll-behavior:smooth; }
       .on('mouseleave', () => setHover(null))
       .on('click', ev => { const [x, y] = d3.pointer(ev, el.map); const q = quad.find(x, y, 40 * k); if (!q) return; const m = course.points.d[q.i]; const s = curSegs().find(z => m >= z.start_m && m < z.end_m) || curSegs()[curSegs().length - 1]; if (s) setUi({ selectedSegmentId:s.id }); });
     mapRefs = { hoverDot, hoverCore, selPath, bG, k, vw, vh };
-    drawMapSegments();
+    drawSvgSegments();
   }
-  function drawMapSegments() {
+  function drawSvgSegments() {
     if (!mapRefs || !mapPts) return;
     const list = curSegs(), sel = selectedId();
     const s = list.find(z => z.id === sel);
@@ -607,13 +647,244 @@ html { scroll-behavior:smooth; }
       .attr('cx', m => { const p = mapPts[idx(course, m)]; return p ? p.x : -50; }).attr('cy', m => { const p = mapPts[idx(course, m)]; return p ? p.y : -50; })
       .attr('fill', tok('--page')).attr('stroke', tok('--ink')).attr('stroke-width', 1.5 * (mapRefs.k || 1));
   }
-  function updateMapHover(m) {
+  function updateSvgHover(m) {
     if (!mapRefs || !mapPts) return;
     const show = m != null && course;
     const p = show ? mapPts[idx(course, m)] : null;
     mapRefs.hoverDot.style('display', p ? null : 'none').attr('cx', p ? p.x : 0).attr('cy', p ? p.y : 0);
     mapRefs.hoverCore.style('display', p ? null : 'none').attr('cx', p ? p.x : 0).attr('cy', p ? p.y : 0);
   }
+  // ---------- live map (Leaflet over OpenTopoMap tiles, only where a tile can load) ----------
+  // The artifact viewer's CSP blocks images from other hosts, so the probe fails at once there and the static SVG map
+  // stays. On GitHub Pages or localhost the probe tile loads and the map switches to live tiles with the same content:
+  // grade-colored route with a halo, mile ticks, POI markers and labels, segment boundaries, selection, hover sync.
+  const FORCE_STATIC = /(?:^\?|&)static=1(?:&|$)/.test(location.search);
+  const TILE_URL = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+  const TILE_ATTR = 'Map data: (c) OpenStreetMap contributors, SRTM. Map style: (c) OpenTopoMap (CC-BY-SA)';
+  let modeReason = '';
+  function hasCoords(c) {
+    if (!c || !c.points || !c.points.lat || !c.points.lon || !c.points.d) return false;
+    const la = c.points.lat, lo = c.points.lon, n = c.points.d.length;
+    if (n < 2 || la.length !== n || lo.length !== n) return false;
+    for (let i = 0; i < n; i++) { if (!isFinite(la[i]) || !isFinite(lo[i])) return false; }
+    return true;
+  }
+  const mercXY = (la, lo) => { if (typeof PL.merc === 'function') return PL.merc(la, lo); const s = Math.sin(la * Math.PI / 180); return { x:(lo + 180) / 360, y:0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI) }; };
+  // One tile at zoom 12 over the course center: true on load, false on error or after 3 s. A CSP that blocks images fires
+  // the error event immediately, so the fallback is fast in the artifact viewer.
+  function probeTiles(c, cb) {
+    const token = ++probeToken; let done = false, timer = null;
+    const img = new Image();
+    const finish = ok => { if (done) return; done = true; clearTimeout(timer); img.onload = img.onerror = null; if (token === probeToken) cb(ok); };
+    const la = c.points.lat, lo = c.points.lon;
+    const m = mercXY((d3.min(la) + d3.max(la)) / 2, (d3.min(lo) + d3.max(lo)) / 2), z = 12, n = 1 << z;
+    const tx = Math.max(0, Math.min(n - 1, Math.floor(m.x * n))), ty = Math.max(0, Math.min(n - 1, Math.floor(m.y * n)));
+    img.onload = () => finish(true); img.onerror = () => finish(false);
+    timer = setTimeout(() => finish(false), 3000);
+    try { img.src = 'https://a.tile.opentopomap.org/' + z + '/' + tx + '/' + ty + '.png'; } catch (e) { finish(false); }
+  }
+  // Runs at load and whenever the course changes. Sets mapMode synchronously (live right away only if an earlier probe
+  // passed, so a course swap does not flash the static map) and starts a probe whose answer may switch the mode once.
+  function decideMode(c) {
+    probeToken++;
+    if (!window.L) { mapMode = 'static'; modeReason = 'Leaflet did not load.'; return; }
+    if (!hasCoords(c)) { mapMode = 'static'; modeReason = 'The course has no coordinates.'; return; }
+    if (FORCE_STATIC) { mapMode = 'static'; modeReason = 'Forced with static=1 in the address.'; return; }
+    // The artifact runtime (window.claude, the same signal the card module uses) means the viewer's CSP blocks tiles:
+    // skip the probe there so the console stays clean and the note appears at once.
+    if (window.claude && typeof window.claude.use === 'function') { mapMode = 'static'; modeReason = 'The artifact viewer blocks map tiles, so the packaged basemap is shown.'; return; }
+    mapMode = tilesOk === true ? 'live' : 'static'; modeReason = tilesOk === true ? '' : 'pending';
+    probeTiles(c, ok => {
+      tilesOk = ok; modeReason = ok ? '' : 'The tile probe failed or timed out.';
+      if (course !== c) return;
+      if (ok !== !!liveRefs) { mapMode = ok ? 'live' : 'static'; renderMap(); updateMapHover((store.get().ui || {}).hoverDist_m); }
+      else renderMapNote();
+    });
+  }
+  function renderMapNote() {
+    if (!el.mapnote) return;
+    el.mapnote.removeAttribute('title');
+    if (!course || !hasCoords(course) || modeReason === 'pending') { el.mapnote.textContent = ''; return; }
+    if (liveRefs) el.mapnote.textContent = 'Live map: OpenTopoMap tiles. Drag to pan. Click the map to unlock scroll zoom, or use the + and - buttons.';
+    else { el.mapnote.textContent = 'Static map: live tiles are not reachable in this viewer.'; if (modeReason) el.mapnote.title = modeReason; }
+  }
+  function renderMap() {
+    renderPoiTable();
+    if (mapMode === 'live' && course && window.L && hasCoords(course)) {
+      clearStaticMap();
+      try { renderLiveMap(); } catch (e) { console.error('course: live map failed, showing the static map', e); destroyLive(); mapMode = 'static'; modeReason = 'The live map failed to start.'; renderStaticMap(); }
+    } else { destroyLive(); renderStaticMap(); }
+    renderMapNote();
+    renderMap._w = el.map.getBoundingClientRect().width;
+  }
+  function clearStaticMap() { d3.select(el.map).selectAll('*:not(title)').remove(); mapRefs = null; mapPts = null; quad = null; el.map.setAttribute('hidden', ''); }
+  function destroyLive() {
+    if (liveRefs) { try { liveRefs.map.remove(); } catch (e) {} liveRefs = null; }
+    if (el.livemap) { el.livemap.innerHTML = ''; el.livemap.setAttribute('hidden', ''); }
+    if (el.mapcol) el.mapcol.classList.remove('course-live');
+  }
+  const liveIcon = (cls, size, anchor, html) => L.divIcon({ className:cls, iconSize:size, iconAnchor:anchor, html:html == null ? '<i></i>' : html });
+  function renderLiveMap() {
+    destroyLive();
+    el.mapcol.classList.add('course-live'); el.livemap.removeAttribute('hidden');
+    const lat = course.points.lat, lon = course.points.lon, n = lat.length, g = course.points.grade;
+    const ll = new Array(n); for (let i = 0; i < n; i++) ll[i] = [lat[i], lon[i]];
+    // Scroll-wheel zoom stays off until the map has focus (a click or Tab gives it focus) and the pointer is over it, so
+    // wheel scrolling through the page never gets trapped by the map. The + and - buttons and pinch always work.
+    const map = L.map(el.livemap, { preferCanvas:true, attributionControl:false, zoomSnap:0.5, zoomDelta:0.5, scrollWheelZoom:false });
+    map.on('focus', () => map.scrollWheelZoom.enable());
+    map.on('blur', () => map.scrollWheelZoom.disable());
+    L.control.attribution({ prefix:false }).addTo(map);
+    L.tileLayer(TILE_URL, { subdomains:'abc', maxZoom:17, attribution:TILE_ATTR }).addTo(map);
+    L.control.scale({ imperial:true, metric:false }).addTo(map);
+    const bounds = L.latLngBounds(ll), size0 = map.getSize();
+    if (size0.x > 10 && size0.y > 10) map.fitBounds(bounds, { padding:[28, 28] }); else map.setView(bounds.getCenter(), 11);
+    // route: halo, then the selected-segment glow, then grade-colored runs (same band edges as the profile)
+    const line = (pts, style) => L.polyline(pts, Object.assign({ lineCap:'round', lineJoin:'round', interactive:false }, style)).addTo(map);
+    const halo = line(ll, { color:PL.alpha(tok('--page'), 0.85), weight:8, opacity:1 });
+    const sel = line([], { color:tok('--route-hi'), weight:12, opacity:0.55 });
+    const runs = []; let i0 = 0;
+    for (let i = 1; i <= n; i++) {
+      if (i === n || bandIdx(g[i]) !== bandIdx(g[i0])) { runs.push({ g:g[i0], layer:line(ll.slice(i0, Math.min(i, n - 1) + 1), { color:PL.gradeColor(g[i0]), weight:4, opacity:1 }) }); i0 = i; }
+    }
+    // label placement: greedy in container pixels at the opening zoom, avoiding the controls, markers, and earlier labels;
+    // each label is placed against a size estimate, then measured once it is in the DOM so the labels after it avoid its
+    // real box. The chosen side sticks through zooms (labels separate on their own as the map zooms in).
+    const size = map.getSize(), placed = [], narrow = size.x < 560;
+    const cbox = el.livemap.getBoundingClientRect();
+    const rel = r => ({ x0:r.left - cbox.left, y0:r.top - cbox.top, x1:r.right - cbox.left, y1:r.bottom - cbox.top });
+    Array.from(el.livemap.querySelectorAll('.leaflet-control')).forEach(ctl => { const r = rel(ctl.getBoundingClientRect()); if (r.x1 > r.x0) placed.push(r); });
+    const measure = (rec, node) => { if (!rec || !node) return; const r = rel(node.getBoundingClientRect()); if (r.x1 > r.x0 && r.y1 > r.y0) Object.assign(rec, r); };
+    const px = p => map.latLngToContainerPoint(p);
+    // Candidates: the four sides at the base gap, then the four diagonals, then both again 2.5 gaps out. Score = overlap
+    // area with everything placed so far (plus a large penalty for leaving the map); the first zero-score candidate wins,
+    // else the least overlap. skipOnClash (mile chips) returns null instead of covering something more important.
+    const placeLabel = (pt, lines, gap, lineH, padX, padY, skipOnClash) => {
+      const w = Math.max(...lines.map(t => t.length)) * 6.4 + padX, h = lines.length * lineH + padY;
+      const cands = [];
+      for (const g of [gap, gap * 2.5]) {
+        cands.push({ dir:'right', x0:pt.x + g, y0:pt.y - h / 2 }, { dir:'left', x0:pt.x - g - w, y0:pt.y - h / 2 }, { dir:'top', x0:pt.x - w / 2, y0:pt.y - g - h }, { dir:'bottom', x0:pt.x - w / 2, y0:pt.y + g });
+        cands.push({ dir:'right', x0:pt.x + g, y0:pt.y - h - g * 0.4 }, { dir:'right', x0:pt.x + g, y0:pt.y + g * 0.4 }, { dir:'left', x0:pt.x - g - w, y0:pt.y - h - g * 0.4 }, { dir:'left', x0:pt.x - g - w, y0:pt.y + g * 0.4 });
+      }
+      let best = null;
+      for (const c of cands) {
+        const r = { x0:c.x0, y0:c.y0, x1:c.x0 + w, y1:c.y0 + h };
+        let score = (r.x0 >= 0 && r.y0 >= 0 && r.x1 <= size.x && r.y1 <= size.y) ? 0 : 1e6;
+        for (const q of placed) { const ix = Math.min(r.x1, q.x1) - Math.max(r.x0, q.x0), iy = Math.min(r.y1, q.y1) - Math.max(r.y0, q.y0); if (ix > 0 && iy > 0) score += ix * iy; }
+        if (!best || score < best.score) best = { c, r, score };
+        if (score === 0) break;
+      }
+      if (skipOnClash && best.score > 0) return null;
+      placed.push(best.r);
+      return { dir:best.c.dir, w, h, rec:best.r, x0:best.r.x0, y0:best.r.y0, pt };
+    };
+    // Tooltip offset that puts the estimated box where the candidate was scored. Leaflet anchors a tooltip by the middle of
+    // its `direction` side and adds a 6 px margin on that side, so the offset is solved from the box for each direction.
+    const tipOffset = pl => { const p = pl.pt; return pl.dir === 'right' ? [pl.x0 - 6 - p.x, pl.y0 + pl.h / 2 - p.y] : pl.dir === 'left' ? [pl.x0 + pl.w + 6 - p.x, pl.y0 + pl.h / 2 - p.y] : pl.dir === 'top' ? [pl.x0 + pl.w / 2 - p.x, pl.y0 + pl.h + 6 - p.y] : [pl.x0 + pl.w / 2 - p.x, pl.y0 - 6 - p.y]; };
+    const tip = (layer, html, cls, pl) => layer.bindTooltip(html, { permanent:true, direction:pl.dir, offset:tipOffset(pl), className:'course-lltip ' + cls, opacity:1, interactive:false });
+    const styled = [];
+    const circle = (p, radius, style) => { const c = L.circleMarker(p, Object.assign({ radius, interactive:false }, style())); styled.push({ layer:c, style }); return c; };
+    // POI groups: a station the course passes twice shares one marker and one label (Wildhorse mi 22.0 and 79.3)
+    const pois = (course.pois || []).filter(p => ['aid','aid-passby','start','finish','timing'].includes(p.type) && isFinite(p.lat) && isFinite(p.lon)).slice();
+    if (!pois.some(p => p.type === 'finish')) pois.push({ name:'Finish', type:'finish', d:course.length_m, mile:+fmt.mi(course.length_m), lat:lat[n - 1], lon:lon[n - 1] });
+    const groups = [];
+    for (const p of pois) {
+      const cls = p.type === 'aid' ? 'aid' : p.type === 'aid-passby' ? 'pass' : 'mark';
+      let grp = groups.find(G => G.cls === cls && map.distance([G.lat, G.lon], [p.lat, p.lon]) < 500);
+      if (!grp) { grp = { lat:p.lat, lon:p.lon, cls, items:[] }; groups.push(grp); }
+      grp.items.push(p);
+    }
+    const rank = G => G.cls === 'aid' ? 0 : G.cls === 'mark' ? 1 : 2;
+    groups.sort((a, b) => rank(a) - rank(b));
+    for (const G of groups) { const q = px([G.lat, G.lon]); placed.push({ x0:q.x - 8, x1:q.x + 8, y0:q.y - 8, y1:q.y + 8 }); }
+    const tickPts = [];
+    for (let mi = 10; mi * MI < course.length_m - 400; mi += 10) tickPts.push({ mi, p:ll[idx(course, mi * MI)] });
+    for (const { p } of tickPts) { const q = px(p); placed.push({ x0:q.x - 4, x1:q.x + 4, y0:q.y - 4, y1:q.y + 4 }); }
+    // Draw order: aid and start/finish/timing groups, then mile chips, then passby labels (the least important, so they
+    // take whatever room is left instead of pushing a station label or a chip aside).
+    const drawGroup = G => {
+      const p = [G.lat, G.lon], q = px(p);
+      if (G.cls === 'aid' || G.cls === 'pass') {
+        const hasCut = G.items.some(x => x.cutoff), pass = G.cls === 'pass';
+        const name = G.items[0].name, miles = G.items.map(x => fmt.mi(x.d)).join(' and ');
+        const cut = G.items.filter(x => x.cutoff).map(x => 'cutoff ' + x.cutoff + ' at ' + fmt.mi(x.d));
+        // narrow maps split the label in two lines and leave passby markers unlabeled, as the static map does
+        const head = name + (pass ? ' passby' : '');
+        const lines = (narrow ? [head, 'mi ' + miles] : [head + ' mi ' + miles]).concat(cut);
+        const style = pass ? () => ({ color:tok('--aid'), weight:2, fillColor:tok('--tile'), fillOpacity:1 }) : () => ({ color:tok('--page'), weight:2, fillColor:hasCut ? tok('--cutoff') : tok('--aid'), fillOpacity:1 });
+        const c = circle(p, pass ? 5 : 6.5, style);
+        if (!(pass && narrow)) {
+          const pl = placeLabel(q, lines, 12, 15, 16, 8);
+          tip(c, esc(lines[0]) + lines.slice(1).map(t => '<span class="course-lltip-sub">' + esc(t) + '</span>').join(''), pass ? 'course-lltip-pass' : hasCut ? 'course-lltip-cut' : 'course-lltip-aid', pl);
+          c.addTo(map);
+          measure(pl.rec, c.getTooltip() && c.getTooltip().getElement());
+        } else c.addTo(map);
+      } else {
+        const labels = G.items.map(x => x.type === 'start' ? 'Start' : x.type === 'finish' ? 'Finish' : 'Timing ' + fmt.mi(x.d));
+        const isSF = G.items.some(x => x.type === 'start' || x.type === 'finish');
+        const pl = placeLabel(q, [labels.join(' / ')], 12, 15, 16, 8);
+        const mk = L.marker(p, { icon:liveIcon('course-llmark ' + (isSF ? 'course-llsq' : 'course-lldia'), [12, 12], [6, 6]), interactive:false, keyboard:false });
+        tip(mk, esc(labels.join(' / ')), 'course-lltip-mark', pl);
+        mk.addTo(map);
+        measure(pl.rec, mk.getTooltip() && mk.getTooltip().getElement());
+      }
+    };
+    groups.filter(G => G.cls !== 'pass').forEach(drawGroup);
+    // mile ticks every 10 miles: a dot on the route and a numbered chip beside it (the chip is dropped, the dot kept, when
+    // every candidate spot would cover a label)
+    for (const { mi, p } of tickPts) {
+      const q = px(p), txt = String(mi), w = txt.length * 7 + 10, h = 16;
+      circle(p, 3.5, () => ({ color:tok('--page'), weight:1.5, fillColor:tok('--ink'), fillOpacity:1 })).addTo(map);
+      const pl = placeLabel(q, [txt], 6, h, 10, 0, true);
+      if (!pl) continue;
+      const chip = L.marker(p, { icon:liveIcon('course-lltick', [w, h], [q.x - pl.x0, q.y - pl.y0], txt), interactive:false, keyboard:false }).addTo(map);
+      measure(pl.rec, chip.getElement());
+    }
+    groups.filter(G => G.cls === 'pass').forEach(drawGroup);
+    // hover marker (added to the map only while something is hovered) and hit testing against the nearest 50 m bin
+    const hoverRing = circle(ll[0], 8, () => ({ color:tok('--route-hi'), weight:3, fill:false }));
+    const hoverCore = circle(ll[0], 3, () => ({ stroke:false, fillColor:tok('--route-hi'), fillOpacity:1 }));
+    map.on('mousemove', ev => { const r = liveRefs; if (!r || !r.quad || !ev.containerPoint) return; const q = r.quad.find(ev.containerPoint.x, ev.containerPoint.y, 12); setHover(q ? course.points.d[q.i] : null); });
+    map.on('mouseout', () => setHover(null));
+    map.on('click', ev => { const r = liveRefs; if (!r || !r.quad || !ev.containerPoint) return; const q = r.quad.find(ev.containerPoint.x, ev.containerPoint.y, 16); if (!q) return; const m = course.points.d[q.i]; const s = curSegs().find(z => m >= z.start_m && m < z.end_m) || curSegs()[curSegs().length - 1]; if (s) setUi({ selectedSegmentId:s.id }); });
+    map.on('moveend zoomend resize', rebuildHit);
+    liveRefs = { map, ll, halo, sel, runs, styled, hoverRing, hoverCore, boundMarkers:[], quad:null, w:el.mapwrap.clientWidth };
+    rebuildHit();
+    drawLiveSegments();
+  }
+  // Container-pixel quadtree over every bin, rebuilt after each pan, zoom, or resize, so hover and click cost O(log n).
+  function rebuildHit() {
+    const r = liveRefs; if (!r) return;
+    const pts = new Array(r.ll.length);
+    for (let i = 0; i < r.ll.length; i++) { const p = r.map.latLngToContainerPoint(r.ll[i]); pts[i] = { x:p.x, y:p.y, i }; }
+    r.quad = d3.quadtree().x(p => p.x).y(p => p.y).addAll(pts);
+  }
+  function drawLiveSegments() {
+    const r = liveRefs; if (!r || !course) return;
+    const list = curSegs(), selId = selectedId(), s = list.find(z => z.id === selId);
+    r.sel.setLatLngs(s ? r.ll.slice(idx(course, s.start_m), idx(course, s.end_m) + 1) : []);
+    const b = list.slice(1).map(z => z.start_m);
+    while (r.boundMarkers.length > b.length) r.map.removeLayer(r.boundMarkers.pop());
+    b.forEach((m, i) => { const p = r.ll[idx(course, m)]; if (r.boundMarkers[i]) r.boundMarkers[i].setLatLng(p); else r.boundMarkers.push(L.marker(p, { icon:liveIcon('course-llbound', [10, 10], [5, 5]), interactive:false, keyboard:false }).addTo(r.map)); });
+  }
+  function updateLiveHover(m) {
+    const r = liveRefs; if (!r) return;
+    if (m == null || !course) { if (r.map.hasLayer(r.hoverRing)) { r.map.removeLayer(r.hoverRing); r.map.removeLayer(r.hoverCore); } return; }
+    const p = r.ll[idx(course, m)];
+    r.hoverRing.setLatLng(p); r.hoverCore.setLatLng(p);
+    if (!r.map.hasLayer(r.hoverRing)) { r.hoverRing.addTo(r.map); r.hoverCore.addTo(r.map); }
+  }
+  // Theme change in live mode: recolor the vector layers in place; labels, chips, controls, and the tile filter are CSS.
+  function restyleLive() {
+    const r = liveRefs; if (!r) return;
+    r.halo.setStyle({ color:PL.alpha(tok('--page'), 0.85) });
+    r.sel.setStyle({ color:tok('--route-hi') });
+    r.runs.forEach(x => x.layer.setStyle({ color:PL.gradeColor(x.g) }));
+    r.styled.forEach(x => x.layer.setStyle(x.style()));
+  }
+  // Every caller keeps using these two; each mode's implementation is a no-op when that mode is not showing.
+  function drawMapSegments() { drawSvgSegments(); drawLiveSegments(); }
+  function updateMapHover(m) { updateSvgHover(m); updateLiveHover(m); }
   function renderPoiTable() {
     if (!el.poibody) return;
     if (!course) { el.poibody.innerHTML = '<tr><td colspan="5">No course loaded.</td></tr>'; return; }
@@ -854,11 +1125,18 @@ html { scroll-behavior:smooth; }
     if (PL.defaults && PL.defaults.max_segments && !el.maxseg.dataset.touched) el.maxseg.value = PL.defaults.max_segments;
     const usable = validSegs(existingSegs, course);
     segs = usable ? existingSegs : [];
+    decideMode(course);
     renderMap(); renderProfile();
     if (course && !usable) { const auto = autoSegment(course, capValue()); if (fromStore) writeSegsDeferred(auto); else { writeSegs(auto); renderAll(); } }
     else renderAll();
   }
   el.maxseg.addEventListener('input', () => { el.maxseg.dataset.touched = '1'; });
+  // Live-map container listeners are registered once (the map inside it is rebuilt on every course change): leaving the
+  // map clears the hover and locks wheel zoom again; re-entering a still-focused map unlocks it.
+  if (el.livemap) {
+    el.livemap.addEventListener('mouseleave', () => { setHover(null); if (liveRefs) liveRefs.map.scrollWheelZoom.disable(); });
+    el.livemap.addEventListener('mouseenter', () => { if (liveRefs && document.activeElement === liveRefs.map.getContainer()) liveRefs.map.scrollWheelZoom.enable(); });
+  }
   const st0 = store.get();
   loadCourse(st0.course || PL.course || null, st0.segments, false);
   store.subscribe((st, keys) => {
@@ -875,10 +1153,11 @@ html { scroll-behavior:smooth; }
       if (ui.selectedSegmentId !== (renderAll._lastSel || null)) { renderAll._lastSel = ui.selectedSegmentId || null; drawSegments(); drawMapSegments(); Array.from(el.segbody.querySelectorAll('tr[data-id]')).forEach(tr => tr.classList.toggle('course-sel', tr.getAttribute('data-id') === ui.selectedSegmentId)); }
     }
   });
-  PL.onThemeChange(() => { renderMap(); renderProfile(); renderTable(); });
+  PL.onThemeChange(() => { if (liveRefs) restyleLive(); else renderMap(); renderProfile(); renderTable(); });
   function onResize() {
     const w = el.profilewrap.clientWidth; if (Math.abs(w - (renderProfile._w || 0)) > 4) { renderProfile._w = w; renderProfile(); }
-    const mw = el.map.getBoundingClientRect().width; if (Math.abs(mw - (renderMap._w || 0)) > 4) { renderMap._w = mw; renderMap(); }
+    if (liveRefs) { const lw = el.mapwrap.clientWidth; if (Math.abs(lw - (liveRefs.w || 0)) > 4) { liveRefs.w = lw; liveRefs.map.invalidateSize(); } }
+    else { const mw = el.map.getBoundingClientRect().width; if (Math.abs(mw - (renderMap._w || 0)) > 4) { renderMap._w = mw; renderMap(); } }
   }
   if (window.ResizeObserver) { const ro = new ResizeObserver(() => { clearTimeout(resizeTimer); resizeTimer = setTimeout(onResize, 120); }); ro.observe(el.profilewrap); ro.observe(el.mapwrap); }
   else window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(onResize, 150); });
@@ -1470,6 +1749,7 @@ html { scroll-behavior:smooth; }
 #pl-fueling .fueling-muted { color:var(--muted); font-size:13px; }
 #pl-fueling tr.fueling-group th { text-align:left; background:var(--tile); color:var(--ink-2); font-weight:600; }
 #pl-fueling .fueling-empty { padding:10px 0; }
+#pl-fueling .fueling-grid2 > * { min-width: 0; overflow-x: auto; }
 </style>
 <h2>Fueling</h2>
 <p>Set the hourly targets, what you carry from the line, and what you do at each aid station. The model runs each leg against the pacing ETAs, carries leftovers forward, and shows where the bottles and pockets run dry.</p>
