@@ -6,15 +6,15 @@
 :root { color-scheme: light;
   --page:#f6f6f3; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781; --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
   --accent:#256abf; --tile:#ffffff; --route:#1c3f6e; --route-hi:#eb6834; --aid:#1baf7a; --cutoff:#d8443f;
-  --grade-dn2:#5a9be0; --grade-dn1:#a9cbf0; --grade-0:#e7e2cf; --grade-1:#f3cf6a; --grade-2:#f0a24d; --grade-3:#e2703a; --grade-4:#c9432f; --grade-5:#8f1d2c; }
+  --grade-dn2:#5a9be0; --grade-dn1:#a9cbf0; --grade-0:#e7e2cf; --grade-1:#f3cf6a; --grade-2:#f0a24d; --grade-3:#e2703a; --grade-4:#c9432f; --grade-5:#8f1d2c; --g-d8:#102d5e; --g-d7:#1a458a; --g-d6:#2463b3; --g-d5:#2f86d2; --g-d4:#4aa8dd; --g-d3:#2fa88f; --g-d2:#63bd72; --g-d1:#a8d8a0; --g-0:#e7e2cf; --g-u1:#e9d75a; --g-u2:#f2bd36; --g-u3:#ef9430; --g-u4:#e66d2a; --g-u5:#d9432c; --g-u6:#bf2a52; --g-u7:#93307f; --g-u8:#5c2a86; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark;
   --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
   --accent:#5598e7; --tile:#1f1f1e; --route:#9cc4ee; --route-hi:#ff8a5c; --aid:#2fc48d; --cutoff:#ef6b62;
-  --grade-dn2:#3f7fc9; --grade-dn1:#7fa9d9; --grade-0:#4a4842; --grade-1:#c9a744; --grade-2:#d28a3c; --grade-3:#cf6534; --grade-4:#c0432c; --grade-5:#8f2a33; } }
+  --grade-dn2:#3f7fc9; --grade-dn1:#7fa9d9; --grade-0:#4a4842; --grade-1:#c9a744; --grade-2:#d28a3c; --grade-3:#cf6534; --grade-4:#c0432c; --grade-5:#8f2a33; --g-d8:#1e3a73; --g-d7:#274f95; --g-d6:#2e6ab8; --g-d5:#3a86cf; --g-d4:#4ea3d6; --g-d3:#2e9e8a; --g-d2:#57b46a; --g-d1:#8fcf94; --g-0:#4a4842; --g-u1:#d9c94e; --g-u2:#e2af3a; --g-u3:#e08c34; --g-u4:#d9672e; --g-u5:#cc4130; --g-u6:#b32f54; --g-u7:#8f3a80; --g-u8:#6a3a92; } }
 :root[data-theme="dark"] { color-scheme: dark;
   --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781; --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
   --accent:#5598e7; --tile:#1f1f1e; --route:#9cc4ee; --route-hi:#ff8a5c; --aid:#2fc48d; --cutoff:#ef6b62;
-  --grade-dn2:#3f7fc9; --grade-dn1:#7fa9d9; --grade-0:#4a4842; --grade-1:#c9a744; --grade-2:#d28a3c; --grade-3:#cf6534; --grade-4:#c0432c; --grade-5:#8f2a33; }
+  --grade-dn2:#3f7fc9; --grade-dn1:#7fa9d9; --grade-0:#4a4842; --grade-1:#c9a744; --grade-2:#d28a3c; --grade-3:#cf6534; --grade-4:#c0432c; --grade-5:#8f2a33; --g-d8:#1e3a73; --g-d7:#274f95; --g-d6:#2e6ab8; --g-d5:#3a86cf; --g-d4:#4ea3d6; --g-d3:#2e9e8a; --g-d2:#57b46a; --g-d1:#8fcf94; --g-0:#4a4842; --g-u1:#d9c94e; --g-u2:#e2af3a; --g-u3:#e08c34; --g-u4:#d9672e; --g-u5:#cc4130; --g-u6:#b32f54; --g-u7:#8f3a80; --g-u8:#6a3a92; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--page); color:var(--ink); font-family:"Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif; font-size:15px; line-height:1.45; }
 .wrap { max-width:1180px; margin:0 auto; padding:0 20px 80px; }
@@ -55,7 +55,12 @@ html { scroll-behavior:smooth; }
   const cbs=[]; const fire=()=>cbs.forEach(fn=>{try{fn();}catch(e){console.error(e);}});
   if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', fire);
   new MutationObserver(fire).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
-  const gradeColor = g => tok(g < -0.05 ? '--grade-dn2' : g < -0.02 ? '--grade-dn1' : g < 0.02 ? '--grade-0' : g < 0.04 ? '--grade-1' : g < 0.06 ? '--grade-2' : g < 0.08 ? '--grade-3' : g < 0.10 ? '--grade-4' : '--grade-5');
+  // Symmetric grade scale (Dan, 9/6): grey from -1 to 1 percent, then 2 percent bands to 15; green to blue down, yellow to purple up.
+  const GRADE_BANDS = [];
+  ['below -15%','-15 to -13%','-13 to -11%','-11 to -9%','-9 to -7%','-7 to -5%','-5 to -3%','-3 to -1%'].forEach((label, k) => GRADE_BANDS.push({ lo: k === 0 ? -Infinity : -0.15 + 0.02 * (k - 1), hi: -0.15 + 0.02 * k, tok: '--g-d' + (8 - k), label }));
+  GRADE_BANDS.push({ lo: -0.01, hi: 0.01, tok: '--g-0', label: '-1 to 1%' });
+  ['1 to 3%','3 to 5%','5 to 7%','7 to 9%','9 to 11%','11 to 13%','13 to 15%','15% and up'].forEach((label, k) => GRADE_BANDS.push({ lo: 0.01 + 0.02 * k, hi: k === 7 ? Infinity : 0.03 + 0.02 * k, tok: '--g-u' + (k + 1), label }));
+  const gradeColor = g => { for (const b of GRADE_BANDS) if (g < b.hi) return tok(b.tok); return tok('--g-u8'); };
   const merc = (lat, lon) => { const x=(lon+180)/360; const s=Math.sin(lat*Math.PI/180); const y=0.5-Math.log((1+s)/(1-s))/(4*Math.PI); return {x,y}; };
   const project = (lat, lon) => { const bm=(PL.store.get().course||course).basemap; if(!bm) return null; const p=merc(lat,lon), a=merc(bm.bbox.north,bm.bbox.west), b=merc(bm.bbox.south,bm.bbox.east);
     return { x:(p.x-a.x)/(b.x-a.x)*bm.width, y:(p.y-a.y)/(b.y-a.y)*bm.height }; };
@@ -71,7 +76,7 @@ html { scroll-behavior:smooth; }
     set:patch=>{ if(typeof patch==='function') patch=patch(state); if(!patch) return; const keys=Object.keys(patch); state=Object.assign({}, state, patch); subs.slice().forEach(fn=>{try{fn(state, keys);}catch(e){console.error(e);}}); } };
   let uidn=0; const uid=()=>'s'+(Date.now().toString(36))+(uidn++).toString(36);
   const ready={}; const dispatchReady=name=>{ready[name]=true; document.dispatchEvent(new CustomEvent('pl:ready',{detail:{name}}));};
-  window.PL = { course, store, tok, alpha, onThemeChange:fn=>cbs.push(fn), gradeColor, project, merc, fmt, uid, dispatchReady, ready,
+  window.PL = { course, store, tok, alpha, onThemeChange:fn=>cbs.push(fn), gradeColor, gradeBands: GRADE_BANDS, project, merc, fmt, uid, dispatchReady, ready,
     defaults:{"mass_kg": 98.5, "cda": 0.32, "drivetrain": 0.975, "descent_cap_ms": 12, "descent_cap_by_surface": {"pavement": 15, "packed": 12, "loose": 12, "sand": 12}, "stop_s_default": 75, "ftp": 285, "ftp_alt": 300, "crr_by_surface": {"pavement": 0.013, "packed": 0.017, "loose": 0.021, "sand": 0.028}, "max_segments": 12, "presets": {"conservative": {"flat": 182, "climb": 200, "hard_climb": 205, "desc": 125}, "primary": {"flat": 188, "climb": 208, "hard_climb": 215, "desc": 130}, "race": {"flat": 203, "climb": 222, "hard_climb": 232, "desc": 140}}, "neutral_w": 150, "punch_w": 300, "hard_climb_grade": 0.06}, products:[{"id": "cf_bottle", "name": "Carbs Fuel bottle (100 g / 710 ml)", "kind": "bottle", "carbs_g": 100, "volume_ml": 710, "caffeine": false}, {"id": "water_bottle", "name": "Water bottle (710 ml)", "kind": "bottle", "carbs_g": 0, "volume_ml": 710, "caffeine": false}, {"id": "aid_mix_bottle", "name": "Aid-station mix bottle (~35 g / 710 ml)", "kind": "bottle", "carbs_g": 35, "volume_ml": 710, "caffeine": false}, {"id": "uswe_pack", "name": "USWE pack (225 g / 1.5 L)", "kind": "pack", "carbs_g": 225, "volume_ml": 1500, "caffeine": false}, {"id": "roctane", "name": "Roctane gel, caffeine-free (21 g)", "kind": "gel", "carbs_g": 21, "volume_ml": 0, "caffeine": false}, {"id": "roctane_caf", "name": "Roctane gel, caffeinated (21 g)", "kind": "gel", "carbs_g": 21, "volume_ml": 0, "caffeine": true}, {"id": "bar60", "name": "Lemon/Mint bar (60 g)", "kind": "bar", "carbs_g": 60, "volume_ml": 0, "caffeine": false}, {"id": "efs_packet", "name": "EFS packet in a bottle (30 g / 710 ml)", "kind": "bottle", "carbs_g": 30, "volume_ml": 710, "caffeine": false}], rpiFuelPlan:{"target_g_per_h": 100, "target_l_per_h": 0.65, "first_feed_min": 15, "feed_interval_min": 20, "bottle_cages": 2, "start_load": [{"productId": "cf_bottle", "qty": 2}, {"productId": "bar60", "qty": 3}, {"productId": "roctane", "qty": 5}, {"productId": "roctane_caf", "qty": 1}], "aid_actions": {"Trail Creek@11.8": {"stop_s": 20, "take": [], "refill": [], "notes": "water only, cutoff pressure"}, "Wildhorse@22.0": {"stop_s": 45, "take": [], "refill": [{"productId": "aid_mix_bottle", "qty": 2}], "notes": ""}, "Copper Basin@61.0": {"stop_s": 60, "take": [], "refill": [{"productId": "aid_mix_bottle", "qty": 2}], "notes": "grab solid food"}, "Wildhorse@79.3": {"stop_s": 45, "take": [], "refill": [{"productId": "aid_mix_bottle", "qty": 2}], "notes": ""}, "El Diablito@81.9": {"stop_s": 0, "take": [], "refill": [], "notes": "caffeinated Roctane here"}, "Trail Creek@92.0": {"stop_s": 20, "take": [], "refill": [{"productId": "water_bottle", "qty": 1}], "notes": "water for the descent"}}} };
 })();
 </script>
@@ -121,6 +126,11 @@ html { scroll-behavior:smooth; }
 #pl-course .course-legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin:6px 0 0; font-size:12px; color:var(--ink-2); align-items:center; }
 #pl-course .course-legend .course-sw { display:inline-block; width:14px; height:10px; border-radius:2px; vertical-align:-1px; margin-right:5px; border:1px solid var(--border); }
 #pl-course .course-keyhint { font-size:12px; color:var(--muted); margin:4px 0 0; }
+#pl-course .course-scale { position:relative; display:inline-block; width:238px; height:26px; vertical-align:middle; margin-right:6px; }
+#pl-course .course-scale .course-cells { display:flex; height:10px; border-radius:2px; overflow:hidden; border:1px solid var(--border); }
+#pl-course .course-scale .course-sc { flex:1 1 0; height:10px; }
+#pl-course .course-scale .course-tick { position:absolute; top:12px; transform:translateX(-50%); font-size:10px; color:var(--muted); line-height:1; }
+#pl-course .course-profile .course-seg-sub { font-size:10px; font-weight:500; paint-order:stroke fill; stroke-width:3px; stroke-linejoin:round; pointer-events:none; }
 #pl-course .course-controls { display:flex; flex-wrap:wrap; gap:10px 16px; align-items:end; margin:18px 0 10px; }
 #pl-course .course-controls .course-field { display:flex; flex-direction:column; gap:3px; }
 #pl-course .course-controls .course-inline { display:flex; gap:6px; align-items:center; }
@@ -213,7 +223,8 @@ html { scroll-behavior:smooth; }
   const MI = 1609.34, FT = 3.28084, BIN = 50;
   const KINDS = ['climb','descent','rolling','flat','neutral'];
   const SURFACES = ['pavement','packed','loose','sand'];
-  const BANDS = [
+  const hmTxt = sec => (!(sec > 0) ? '' : sec >= 3600 ? Math.floor(sec / 3600) + ':' + String(Math.round((sec % 3600) / 60)).padStart(2, '0') : Math.round(sec / 60) + ' min');
+  const BANDS = (PL.gradeBands && PL.gradeBands.length) ? PL.gradeBands.map(b => ({ label: b.label, g: (isFinite(b.lo) && isFinite(b.hi)) ? (b.lo + b.hi) / 2 : (isFinite(b.lo) ? b.lo + 0.01 : b.hi - 0.01) })) : [
     { label:'below -5%', g:-0.06 }, { label:'-5 to -2%', g:-0.03 }, { label:'-2 to 2%', g:0 }, { label:'2 to 4%', g:0.03 },
     { label:'4 to 6%', g:0.05 }, { label:'6 to 8%', g:0.07 }, { label:'8 to 10%', g:0.09 }, { label:'10% and up', g:0.12 } ];
   // Known climb names for courses whose route file has no POI at the summit.
@@ -982,6 +993,14 @@ html { scroll-behavior:smooth; }
       const full = (i + 1) + '  ' + s.name;
       const txt = wpx > full.length * 6.4 + 8 ? full : wpx > 18 ? String(i + 1) : '';
       if (txt) segG.append('text').attr('class', 'course-seg-label').attr('x', cx).attr('y', 14).attr('text-anchor', 'middle').attr('fill', s.id === sel ? tok('--accent') : tok('--ink-2')).attr('stroke', tok('--surface')).text(txt).append('title').text((i + 1) + '. ' + s.name + ', ' + fmt.mi(s.start_m) + ' to ' + fmt.mi(s.end_m) + ' mi');
+      // second line: distance, model split, average and max grade (Dan, 9/6); shown when the segment is wide enough for it
+      const pr = store.get().predictions, ps = pr && pr.segments ? pr.segments.find(z => z.id === s.id) : null;
+      const splitTxt = ps ? hmTxt(ps.moving_s) : '';
+      const gradeTxt = s.avg_grade != null ? fmt.pct(s.avg_grade) + (s.max_grade != null ? ' / ' + fmt.pct(s.max_grade) : '') : '';
+      const sub = fmt.mi(s.end_m - s.start_m) + ' mi' + (splitTxt ? ' \u00b7 ' + splitTxt : '') + (gradeTxt ? ' \u00b7 ' + gradeTxt : '');
+      const subEl = t => segG.append('text').attr('class', 'course-seg-sub').attr('x', cx).attr('text-anchor', 'middle').attr('fill', tok('--muted')).attr('stroke', tok('--surface')).text(t);
+      if (txt && wpx > sub.length * 5.6 + 8) subEl(sub).attr('y', 27);
+      else if (txt && wpx > 44) { const compact = [fmt.mi(s.end_m - s.start_m) + ' mi', splitTxt, s.avg_grade != null ? Math.round(s.avg_grade * 100) + (s.max_grade != null ? '/' + Math.round(s.max_grade * 100) : '') + '%' : ''].filter(Boolean); compact.forEach((t, k) => subEl(t).attr('y', 27 + 11 * k)); }
     });
     // boundaries with handles (skip index 0, the course start)
     list.forEach((s, j) => {
@@ -1028,14 +1047,21 @@ html { scroll-behavior:smooth; }
     const i = idx(course, m), px = x(course.points.d[i] / MI), ev = course.points.e[i], py = y(ev * FT);
     hov.style('display', null); hov.select('line').attr('x1', px).attr('x2', px); hov.select('circle').attr('cx', px).attr('cy', py);
     const s = curSegs().find(z => m >= z.start_m && m < z.end_m) || curSegs()[curSegs().length - 1];
-    el.tip.innerHTML = '<strong>Mile ' + fmt.mi(course.points.d[i]) + '</strong> &nbsp; ' + fmt.ft(ev) + ' ft &nbsp; ' + fmt.pct(course.points.grade[i]) + (s ? '<br>' + esc(s.name) + ' (' + fmt.mi(s.start_m) + ' to ' + fmt.mi(s.end_m) + ' mi)' : '');
+    const prT = store.get().predictions, bt = prT && prT.bin_elapsed_s ? prT.bin_elapsed_s[i] : null;
+    const psT = prT && prT.segments && s ? prT.segments.find(z => z.id === s.id) : null;
+    el.tip.innerHTML = '<strong>Mile ' + fmt.mi(course.points.d[i]) + '</strong> &nbsp; ' + fmt.ft(ev) + ' ft &nbsp; ' + fmt.pct(course.points.grade[i]) + (s ? '<br>' + esc(s.name) + ' (' + fmt.mi(s.start_m) + ' to ' + fmt.mi(s.end_m) + ' mi)' + (psT ? ': ' + hmTxt(psT.moving_s) : '') + (s.avg_grade != null ? ', ' + fmt.pct(s.avg_grade) + ' avg' + (s.max_grade != null ? ' / ' + fmt.pct(s.max_grade) + ' max' : '') : '') : '')
+      + (bt != null ? '<br>ETA ' + fmt.clock(bt + (prT.start_seconds || 0)) + ' \u00b7 ' + fmt.hms(bt) + ' elapsed' : '');
     el.tip.hidden = false;
     const wrapW = el.profilewrap.clientWidth || 800, tipW = el.tip.offsetWidth || 160;
     let left = PM.left + px + 12; if (left + tipW > wrapW - 4) left = PM.left + px - tipW - 12;
     el.tip.style.left = Math.max(0, left) + 'px'; el.tip.style.top = Math.max(0, PM.top + Math.min(py - 10, ih - 50)) + 'px';
   }
   function renderLegend() {
-    el.legend.innerHTML = '<span style="color:var(--muted)">Grade</span>' + BANDS.map(b => '<span><span class="course-sw" style="background:' + PL.gradeColor(b.g) + '"></span>' + b.label + '</span>').join('')
+    const scale = BANDS.length > 10
+      ? '<span class="course-scale" role="img" aria-label="Grade color scale: dark blue below minus 15 percent through green near minus 1, grey from minus 1 to 1, yellow through red to purple at 15 percent and up, in 2 percent steps"><span class="course-cells">' + BANDS.map(b => '<span class="course-sc" title="' + b.label + '" style="background:' + PL.gradeColor(b.g) + '"></span>').join('') + '</span>'
+        + [[1,'-15'],[4,'-9'],[7,'-3'],[8.5,'0'],[10,'3'],[13,'9'],[16,'15%']].map(t => '<span class="course-tick" style="left:' + (t[0] / BANDS.length * 100).toFixed(2) + '%">' + t[1] + '</span>').join('') + '</span>'
+      : BANDS.map(b => '<span><span class="course-sw" style="background:' + PL.gradeColor(b.g) + '"></span>' + b.label + '</span>').join('');
+    el.legend.innerHTML = '<span style="color:var(--muted)">Grade</span>' + scale
       + '<span><span class="course-sw" style="background:' + tok('--aid') + '"></span>aid</span><span><span class="course-sw" style="background:' + tok('--cutoff') + '"></span>cutoff</span><span><span class="course-sw" style="background:' + tok('--muted') + '"></span>timing</span>';
   }
 
@@ -1153,6 +1179,7 @@ html { scroll-behavior:smooth; }
       if (course && !validSegs(incoming, course)) { writeSegsDeferred(autoSegment(course, capValue())); return; }
       segs = incoming; tempSegs = null; renderAll();
     } else if (keys.includes('segments')) renderAll();
+    if (keys.includes('predictions') && profRefs) drawSegments(); // splits in the segment sublabels
     if (keys.includes('ui')) {
       const ui = st.ui || {};
       updateProfileHover(ui.hoverDist_m); updateMapHover(ui.hoverDist_m);
@@ -1466,6 +1493,7 @@ html { scroll-behavior:smooth; }
     const outSegs = [], aid_eta = [], climb_clock = [], segHasPunch = {};
     const stops = pac.stops || {};
     let pendingStop = 0;
+    const binT = new Array(n).fill(null); // elapsed seconds at the end of each 50 m bin, for the profile tooltip
     segs.forEach(seg => {
       const pw = (pac.power_by_segment && pac.power_by_segment[seg.id]) || { base_w: baseForSegment(seg, activePresetName(pac), pac), punch_w: punchDefault(pac) };
       const base = num(pw.base_w, 0), punch = num(pw.punch_w, punchDefault(pac));
@@ -1485,7 +1513,7 @@ html { scroll-behavior:smooth; }
         if (g < -0.02) v = Math.min(v, capOf(binSurf ? binSurf[i] : seg.surface));
         const dt = bin / Math.max(v, 0.8);
         T += dt; PT += P * dt; sumP4dt += Math.pow(P, 4) * dt; sumPdt += P * dt;
-        elapsed += dt; moving += dt;
+        elapsed += dt; moving += dt; binT[i] = elapsed;
         const dEnd = (i + 1) * bin;
         while (poiIdx < pois.length && pois[poiIdx].d <= dEnd + 1e-6) {
           const p = pois[poiIdx], k = poiKey(p), cut = parseClock(p.cutoff);
@@ -1512,7 +1540,7 @@ html { scroll-behavior:smooth; }
     const ftp = num(pac.ftp, 0), ftpAlt = num(pac.ftp_alt, 0);
     const if_ftp = ftp > 0 ? np_w / ftp : 0, if_alt = ftpAlt > 0 ? np_w / ftpAlt : 0;
     return { segments: outSegs, total_moving_s: moving, total_elapsed_s: elapsed, avg_w: moving > 0 ? sumPdt / moving : 0, np_w, if_ftp, if_alt,
-      tss: (elapsed / 3600) * if_ftp * if_ftp * 100, aid_eta, climb_clock, start_seconds: start0, _hasPunch: segHasPunch };
+      tss: (elapsed / 3600) * if_ftp * if_ftp * 100, aid_eta, climb_clock, start_seconds: start0, bin_elapsed_s: binT, _hasPunch: segHasPunch };
   }
 
   // ---------- store glue ----------
