@@ -223,7 +223,7 @@ html { scroll-behavior:smooth; }
   const MI = 1609.34, FT = 3.28084, BIN = 50;
   const KINDS = ['climb','descent','rolling','flat','neutral'];
   const SURFACES = ['pavement','packed','loose','sand'];
-  const hmTxt = sec => (!(sec > 0) ? '' : sec >= 3600 ? Math.floor(sec / 3600) + ':' + String(Math.round((sec % 3600) / 60)).padStart(2, '0') : Math.round(sec / 60) + ' min');
+  const hmTxt = sec => { if (!(sec > 0)) return ''; const m = Math.round(sec / 60); return m >= 60 ? Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0') : m + ' min'; };
   const BANDS = (PL.gradeBands && PL.gradeBands.length) ? PL.gradeBands.map(b => ({ label: b.label, g: (isFinite(b.lo) && isFinite(b.hi)) ? (b.lo + b.hi) / 2 : (isFinite(b.lo) ? b.lo + 0.01 : b.hi - 0.01) })) : [
     { label:'below -5%', g:-0.06 }, { label:'-5 to -2%', g:-0.03 }, { label:'-2 to 2%', g:0 }, { label:'2 to 4%', g:0.03 },
     { label:'4 to 6%', g:0.05 }, { label:'6 to 8%', g:0.07 }, { label:'8 to 10%', g:0.09 }, { label:'10% and up', g:0.12 } ];
@@ -1536,6 +1536,7 @@ html { scroll-behavior:smooth; }
       aid_eta.push({ poiKey:k, name:p.name, mile:+p.mile, arrive_s: elapsed, stop_s: Math.max(0, num(stops[k], 0)), cutoff_s: cut, margin_s: cut != null ? cut - (start0 + elapsed) : null, beyond_course: true });
       poiIdx++;
     }
+    if (n > 0 && binT[n - 1] == null) binT[n - 1] = elapsed; // the finish point carries the total elapsed
     const np_w = moving > 0 ? Math.pow(sumP4dt / moving, 0.25) : 0;
     const ftp = num(pac.ftp, 0), ftpAlt = num(pac.ftp_alt, 0);
     const if_ftp = ftp > 0 ? np_w / ftp : 0, if_alt = ftpAlt > 0 ? np_w / ftpAlt : 0;
