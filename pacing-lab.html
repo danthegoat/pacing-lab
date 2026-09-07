@@ -126,6 +126,7 @@ html { scroll-behavior:smooth; }
 #pl-course .course-legend { display:flex; flex-wrap:wrap; gap:6px 14px; margin:6px 0 0; font-size:12px; color:var(--ink-2); align-items:center; }
 #pl-course .course-legend .course-sw { display:inline-block; width:14px; height:10px; border-radius:2px; vertical-align:-1px; margin-right:5px; border:1px solid var(--border); }
 #pl-course .course-keyhint { font-size:12px; color:var(--muted); margin:4px 0 0; }
+#pl-course .course-toggle { display:inline-flex; gap:6px; align-items:center; font-size:12px; color:var(--ink-2); margin:6px 0 0; cursor:pointer; }
 #pl-course .course-scale { position:relative; display:inline-block; width:238px; height:26px; vertical-align:middle; margin-right:6px; }
 #pl-course .course-scale .course-cells { display:flex; height:10px; border-radius:2px; overflow:hidden; border:1px solid var(--border); }
 #pl-course .course-scale .course-sc { flex:1 1 0; height:10px; }
@@ -181,7 +182,7 @@ html { scroll-behavior:smooth; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #pl-course .leaflet-tile-pane { filter:brightness(.82) saturate(.9); } }
 </style>
 <h2>Course</h2>
-<p class="course-lead" id="course-lead">Map and grade-colored profile of the course, divided into pacing segments. Aid stations lock a boundary in place. Drag a handle on the profile to move a boundary, click the profile to add one, and edit names, kinds, and surfaces in the table below. The pacing module reads these segments.</p>
+<p class="course-lead" id="course-lead">Map and grade-colored profile of the course, divided into pacing segments. Aid stations and the timing start seed boundaries you can move, merge or delete. Drag a handle on the profile to move a boundary, click the profile to add one, and edit names, kinds, and surfaces in the table below. The pacing module reads these segments.</p>
 <p class="course-caption" id="course-caption"></p>
 <div class="course-maprow">
   <div class="course-mapcol" id="course-mapcol">
@@ -201,6 +202,7 @@ html { scroll-behavior:smooth; }
   <div class="course-tip" id="course-tip" hidden></div>
 </div>
 <div class="course-legend" id="course-legend" role="group" aria-label="Grade bands"></div>
+<label class="course-toggle"><input type="checkbox" id="course-smooth"> Smooth grade colors over 250 m (display only; the model and segment stats use the raw 50 m bins)</label>
 <p class="course-keyhint">Keyboard: Tab to a boundary handle, arrow keys move it 50 m, Shift plus arrow moves 500 m, Enter selects, Delete removes an unlocked boundary. Every boundary and segment is also editable in the table below.</p>
 <div class="course-controls">
   <div class="course-field"><label for="course-addmile">Add boundary at mile</label>
@@ -245,6 +247,10 @@ html { scroll-behavior:smooth; }
     return out;
   }
   let g250 = null, g250Course = null;
+  // Display-only smoothing: a 250 m rolling grade for the profile fill, the map route and the tooltip grade. Physics and segment stats use the raw bins.
+  const SMOOTH_KEY = 'pl-course-smooth-grade'; let smoothGrade = false; try { smoothGrade = localStorage.getItem(SMOOTH_KEY) === '1'; } catch (e) {}
+  let gDispCourse = null, gDispCache = null;
+  function gDisp(c) { if (!smoothGrade) return c.points.grade; if (gDispCourse !== c) { gDispCache = rolling250(c); gDispCourse = c; } return gDispCache; }
   function stats(c, a, b) {
     if (g250Course !== c) { g250 = rolling250(c); g250Course = c; }
     const e = c.points.e, i0 = idx(c, a), i1 = idx(c, b);
@@ -383,7 +389,7 @@ html { scroll-behavior:smooth; }
       b.splice(best.j, 1);
     }
     const segs = [];
-    for (let i = 0; i < b.length - 1; i++) segs.push({ id:PL.uid(), start_m:b[i], end_m:b[i + 1], surface:'packed', locked:locked.has(b[i]), _fresh:true });
+    for (let i = 0; i < b.length - 1; i++) segs.push({ id:PL.uid(), start_m:b[i], end_m:b[i + 1], surface:'packed', locked:false, _fresh:true }); // seeds (aid, timing) are protected during the cap reduction above but start unlocked (Dan 9/6)
     return finish(c, segs);
   }
   function restat(c, segs) { // recompute stats, aid hooks, and auto names/kinds after a bounds change; user-set names and kinds are kept
@@ -537,7 +543,7 @@ html { scroll-behavior:smooth; }
     routeG.append('path').attr('class', 'course-route-halo').attr('d', pathFor(mapPts, 0, n - 1)).attr('stroke', PL.alpha(tok('--page'), 0.85)).attr('stroke-width', 8 * k);
     const selPath = routeG.append('path').attr('class', 'course-route-sel').attr('stroke', tok('--route-hi')).attr('stroke-width', 11 * k).attr('d', '');
     const runsG = routeG.append('g');
-    const g = course.points.grade; let i0 = 0;
+    const g = gDisp(course); let i0 = 0;
     for (let i = 1; i <= n; i++) {
       if (i === n || bandIdx(g[i]) !== bandIdx(g[i0])) {
         runsG.append('path').attr('class', 'course-route-seg').attr('d', pathFor(mapPts, i0, Math.min(i, n - 1))).attr('stroke', PL.gradeColor(g[i0])).attr('stroke-width', 3.5 * k);
@@ -744,7 +750,7 @@ html { scroll-behavior:smooth; }
   function renderLiveMap() {
     destroyLive();
     el.mapcol.classList.add('course-live'); el.livemap.removeAttribute('hidden');
-    const lat = course.points.lat, lon = course.points.lon, n = lat.length, g = course.points.grade;
+    const lat = course.points.lat, lon = course.points.lon, n = lat.length, g = gDisp(course);
     const ll = new Array(n); for (let i = 0; i < n; i++) ll[i] = [lat[i], lon[i]];
     // Scroll-wheel zoom stays off until the map has focus (a click or Tab gives it focus) and the pointer is over it, so
     // wheel scrolling through the page never gets trapped by the map. The + and - buttons and pinch always work.
@@ -917,7 +923,7 @@ html { scroll-behavior:smooth; }
     const W = Math.max(320, el.profilewrap.clientWidth || 800), H = PH;
     svg.attr('viewBox', '0 0 ' + W + ' ' + H).attr('width', W).attr('height', H);
     const iw = W - PM.left - PM.right, ih = H - PM.top - PM.bottom;
-    const d = course.points.d, e = course.points.e, g = course.points.grade, n = d.length;
+    const d = course.points.d, e = course.points.e, g = gDisp(course), n = d.length;
     const x = d3.scaleLinear().domain([0, course.length_m / MI]).range([0, iw]);
     const eMin = d3.min(e), eMax = d3.max(e), pad = Math.max(30, (eMax - eMin) * 0.06);
     const y = d3.scaleLinear().domain([(eMin - pad) * FT, (eMax + pad) * FT]).range([ih, 0]).nice();
@@ -1049,7 +1055,7 @@ html { scroll-behavior:smooth; }
     const s = curSegs().find(z => m >= z.start_m && m < z.end_m) || curSegs()[curSegs().length - 1];
     const prT = store.get().predictions, bt = prT && prT.bin_elapsed_s ? prT.bin_elapsed_s[i] : null;
     const psT = prT && prT.segments && s ? prT.segments.find(z => z.id === s.id) : null;
-    el.tip.innerHTML = '<strong>Mile ' + fmt.mi(course.points.d[i]) + '</strong> &nbsp; ' + fmt.ft(ev) + ' ft &nbsp; ' + fmt.pct(course.points.grade[i]) + (s ? '<br>' + esc(s.name) + ' (' + fmt.mi(s.start_m) + ' to ' + fmt.mi(s.end_m) + ' mi)' + (psT ? ': ' + hmTxt(psT.moving_s) : '') + (s.avg_grade != null ? ', ' + fmt.pct(s.avg_grade) + ' avg' + (s.max_grade != null ? ' / ' + fmt.pct(s.max_grade) + ' max' : '') : '') : '')
+    el.tip.innerHTML = '<strong>Mile ' + fmt.mi(course.points.d[i]) + '</strong> &nbsp; ' + fmt.ft(ev) + ' ft &nbsp; ' + fmt.pct(gDisp(course)[i]) + (smoothGrade ? ' (250 m)' : '') + (s ? '<br>' + esc(s.name) + ' (' + fmt.mi(s.start_m) + ' to ' + fmt.mi(s.end_m) + ' mi)' + (psT ? ': ' + hmTxt(psT.moving_s) : '') + (s.avg_grade != null ? ', ' + fmt.pct(s.avg_grade) + ' avg' + (s.max_grade != null ? ' / ' + fmt.pct(s.max_grade) + ' max' : '') : '') : '')
       + (bt != null ? '<br>ETA ' + fmt.clock(bt + (prT.start_seconds || 0)) + ' \u00b7 ' + fmt.hms(bt) + ' elapsed' : '');
     el.tip.hidden = false;
     const wrapW = el.profilewrap.clientWidth || 800, tipW = el.tip.offsetWidth || 160;
@@ -1113,7 +1119,7 @@ html { scroll-behavior:smooth; }
     else parts.push('and a ' + last.kind + ' finish over the last ' + ((last.end_m - last.start_m) / MI).toFixed(0) + ' mi');
     const s0 = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
     const nLocked = segs.filter(s => s.locked && s.start_m > 0).length;
-    el.caption.textContent = fmt.mi(course.length_m) + ' mi with ' + fmt.ft(course.gain_m) + ' ft of climbing. ' + s0 + ', ' + parts.slice(1).join(', ') + '. ' + segs.length + ' segment' + (segs.length === 1 ? '' : 's') + ', ' + nLocked + ' locked boundar' + (nLocked === 1 ? 'y' : 'ies') + ' (aid stations and the timing start lock by default).';
+    el.caption.textContent = fmt.mi(course.length_m) + ' mi with ' + fmt.ft(course.gain_m) + ' ft of climbing. ' + s0 + ', ' + parts.slice(1).join(', ') + '. ' + segs.length + ' segment' + (segs.length === 1 ? '' : 's') + (nLocked ? ', ' + nLocked + ' locked boundar' + (nLocked === 1 ? 'y' : 'ies') : '') + '. Aid stations and the timing start seed boundaries but stay unlocked; hover any point of interest for its ETA.';
   }
   function renderAll() { renderTable(); renderCaption(); drawSegments(); drawMapSegments(); }
 
@@ -1146,6 +1152,8 @@ html { scroll-behavior:smooth; }
   el.addmile.addEventListener('input', () => { el.addmile.dataset.typed = '1'; });
   el.addmile.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); el.addbtn.click(); } });
   el.rerun.addEventListener('click', rerun);
+  const smoothEl = document.getElementById('course-smooth');
+  if (smoothEl) { smoothEl.checked = smoothGrade; smoothEl.addEventListener('change', () => { smoothGrade = smoothEl.checked; try { localStorage.setItem(SMOOTH_KEY, smoothGrade ? '1' : '0'); } catch (e) {} renderProfile(); renderMap(); }); }
   // Changing the cap never rewrites segments on its own; that would silently discard edits. Re-run applies it.
   el.maxseg.addEventListener('change', () => { const v = capValue(); el.maxseg.value = v; status(segs.length > v ? 'Cap set to ' + v + ', current split has ' + segs.length + ' segments. Press Re-run auto segmentation to apply the cap (this replaces your edits).' : 'Cap set to ' + v + '. Press Re-run auto segmentation to apply it.'); });
 
