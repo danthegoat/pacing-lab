@@ -230,7 +230,7 @@ html { scroll-behavior:smooth; }
   // Known climb names for courses whose route file has no POI at the summit.
   const KNOWN = [ { match:/private idaho/i, climbs:[ { start_m:10350, name:'Trail Creek' }, { start_m:75100, name:'Corral Creek Summit' } ] } ];
   // Grade band index with the same thresholds as PL.gradeColor, so run detection compares integers instead of computed styles.
-  const bandIdx = g => g < -0.05 ? 0 : g < -0.02 ? 1 : g < 0.02 ? 2 : g < 0.04 ? 3 : g < 0.06 ? 4 : g < 0.08 ? 5 : g < 0.10 ? 6 : 7;
+  const bandIdx = g => { const B = PL.gradeBands; if (B && B.length) { for (let k = 0; k < B.length; k++) if (g < B[k].hi) return k; return B.length - 1; } return g < -0.05 ? 0 : g < -0.02 ? 1 : g < 0.02 ? 2 : g < 0.04 ? 3 : g < 0.06 ? 4 : g < 0.08 ? 5 : g < 0.10 ? 6 : 7; };
   // poiKey convention shared with the pacing and fueling modules: name@mile with one decimal (Wildhorse@22.0).
   const poiKey = p => p.name + '@' + (typeof p.mile === 'number' ? p.mile.toFixed(1) : fmt.mi(p.d));
 
